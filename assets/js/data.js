@@ -63,7 +63,7 @@ const imMBAData = {
           <li><strong>Required Documents:</strong> Document Review Form, ID Copy, Bachelor Diploma, Transcript, Autobiography & Study Plan, Recommendation Letter, English Proficiency Proof (TOEIC/TOEFL/IELTS).</li>
         </ul>
         <div class="mt-6">
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" class="inline-block px-6 py-2.5 bg-burgundy hover:bg-burgundyDark text-white font-bold rounded-lg text-sm transition">Online Registration Portal</a>
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="inline-block px-6 py-2.5 bg-burgundy hover:bg-burgundyDark text-white font-bold rounded-lg text-sm transition">Online Registration Portal <svg class="inline-block w-3.5 h-3.5 ml-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </div>
       `,
       content_zh: `
@@ -75,7 +75,7 @@ const imMBAData = {
           <li><strong>審查資料：</strong> 書面資料審查表、身分證影本、學位證書影本、歷年成績單、自傳暨讀書計畫、推薦信乙封、英文能力證明及其他有利審查資料。</li>
         </ul>
         <div class="mt-6">
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" class="inline-block px-6 py-2.5 bg-burgundy hover:bg-burgundyDark text-white font-bold rounded-lg text-sm transition">前往輔大招生系統報名</a>
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="inline-block px-6 py-2.5 bg-burgundy hover:bg-burgundyDark text-white font-bold rounded-lg text-sm transition">前往輔大招生系統報名 <svg class="inline-block w-3.5 h-3.5 ml-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </div>
       `
     },
@@ -456,6 +456,13 @@ const i18n = {
     nav_global: 'Dual Degree',
     nav_downloads: 'Downloads',
     nav_contact: 'Contact',
+    nav_about_overview: 'Overview and Ranking',
+    nav_about_env: 'Our Learning Environment',
+    nav_adm_tracks: 'Admission Tracks & Documents',
+    nav_adm_forms: 'Forms & Downloads',
+    nav_cur_curriculum: 'Curriculum & Credits',
+    nav_cur_faculty: 'Faculty',
+    nav_cur_global: 'Dual Degree',
     btn_apply: 'Apply to imMBA',
     btn_search: 'Search',
     btn_read_more: 'Read More',
@@ -504,6 +511,13 @@ const i18n = {
     nav_global: '跨國雙碩士',
     nav_downloads: '表格下載',
     nav_contact: '聯絡我們',
+    nav_about_overview: '學程概覽與國際排名',
+    nav_about_env: '我們的學習環境',
+    nav_adm_tracks: '入學管道與應繳資料',
+    nav_adm_forms: '表格與文件下載',
+    nav_cur_curriculum: '課程與學分規劃',
+    nav_cur_faculty: '師資陣容',
+    nav_cur_global: '跨國雙碩士',
     btn_apply: '立即報名',
     btn_search: '搜尋',
     btn_read_more: '閱讀全文',

@@ -291,7 +291,7 @@ function renderDownloads() {
     <div class="bg-white border border-slate-200 p-4 flex items-center justify-between hover:border-burgundy transition">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 bg-slate-100 text-burgundy font-mono font-bold flex items-center justify-center text-xs">
-          DOC
+          ${d.file.split('.').pop().toUpperCase()}
         </div>
         <div>
           <h5 class="text-xs font-bold text-slate-900">${d[`title_${currentLang}`]}</h5>
@@ -299,7 +299,7 @@ function renderDownloads() {
         </div>
       </div>
       <button onclick="downloadFile('${d.file}')" class="px-3 py-1.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase transition">
-        <span>${i18n[currentLang].btn_download}</span>
+        <span>${i18n[currentLang].btn_download} (${d.file.split('.').pop().toUpperCase()})</span>
       </button>
     </div>
   `).join('');

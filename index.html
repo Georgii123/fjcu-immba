@@ -35,9 +35,9 @@
         <span class="font-medium text-slate-300 hidden sm:inline">116學年度碩士班甄試招生網路報名：2026/09/30 - 10/13 止</span>
       </div>
       <div class="flex items-center gap-4 text-slate-300 font-medium">
-        <a href="https://exam.fju.edu.tw/admission/251" target="_blank" class="hover:text-white transition">報名系統 Application Portal</a>
+        <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="hover:text-white transition">報名系統 Application Portal <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         <span>|</span>
-        <a href="https://www.management.fju.edu.tw/" target="_blank" class="hover:text-white transition">輔大管院 College Site</a>
+        <a href="https://www.management.fju.edu.tw/" target="_blank" rel="noopener" class="hover:text-white transition">輔大管院 College Site <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </div>
     </div>
   </div>
@@ -60,10 +60,35 @@
 
         <!-- Desktop Menu Nav -->
         <nav class="hidden lg:flex items-center gap-7 text-xs font-bold uppercase tracking-wider text-slate-700">
-          <a href="#about" class="hover:text-burgundy transition" data-i18n="nav_about">關於學程</a>
+          <div class="relative group">
+            <a href="#about" class="hover:text-burgundy transition" data-i18n="nav_about">關於學程</a>
+            <div class="absolute left-0 top-full pt-5 hidden group-hover:block group-focus-within:block">
+              <div class="min-w-[220px] bg-white border border-slate-200 border-t-2 border-t-burgundy shadow-lg normal-case tracking-normal">
+              <a href="#about" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_about_overview">學程概覽與國際排名</a>
+              <a href="#gallery" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_about_env">我們的學習環境</a>
+              </div>
+            </div>
+          </div>
           <a href="#news" class="hover:text-burgundy transition" data-i18n="nav_news">最新消息</a>
-          <a href="#admissions" class="hover:text-burgundy transition" data-i18n="nav_admissions">招生專區</a>
-          <a href="#curriculum" class="hover:text-burgundy transition" data-i18n="nav_curriculum">課程架構</a>
+          <div class="relative group">
+            <a href="#admissions" class="hover:text-burgundy transition" data-i18n="nav_admissions">招生專區</a>
+            <div class="absolute left-0 top-full pt-5 hidden group-hover:block group-focus-within:block">
+              <div class="min-w-[220px] bg-white border border-slate-200 border-t-2 border-t-burgundy shadow-lg normal-case tracking-normal">
+              <a href="#admissions" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_adm_tracks">入學管道與應繳資料</a>
+              <a href="#downloads" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_adm_forms">表格與文件下載</a>
+              </div>
+            </div>
+          </div>
+          <div class="relative group">
+            <a href="#curriculum" class="hover:text-burgundy transition" data-i18n="nav_curriculum">課程架構</a>
+            <div class="absolute left-0 top-full pt-5 hidden group-hover:block group-focus-within:block">
+              <div class="min-w-[220px] bg-white border border-slate-200 border-t-2 border-t-burgundy shadow-lg normal-case tracking-normal">
+              <a href="#curriculum" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_cur_curriculum">課程與學分規劃</a>
+              <a href="#faculty" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_cur_faculty">師資陣容</a>
+              <a href="#global" class="block px-4 py-2.5 text-[11px] hover:bg-slate-50 hover:text-burgundy transition" data-i18n="nav_cur_global">跨國雙碩士</a>
+              </div>
+            </div>
+          </div>
           <a href="#faculty" class="hover:text-burgundy transition" data-i18n="nav_faculty">師資陣容</a>
           <a href="#global" class="hover:text-burgundy transition" data-i18n="nav_global">跨國雙碩士</a>
           <a href="#downloads" class="hover:text-burgundy transition" data-i18n="nav_downloads">表格下載</a>
@@ -84,8 +109,8 @@
           </div>
 
           <!-- Apply CTA -->
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition" data-i18n="btn_apply">
-            立即報名
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition" data-i18n="btn_apply">
+            立即報名 <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>
           </a>
         </div>
 
@@ -241,7 +266,7 @@
       <div class="bg-white border border-slate-200 p-8">
         <h3 class="font-serif text-lg font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
           <span>招生審查應繳交資料 (Checklist of Required Documents)</span>
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" class="text-xs font-bold text-burgundy uppercase hover:underline">116學年度簡章與報名 →</a>
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="text-xs font-bold text-burgundy uppercase hover:underline">116學年度簡章與報名 →<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </h3>
         <ul id="admission-docs" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <!-- Rendered dynamically by app.js -->
@@ -304,7 +329,7 @@
 
 
   <!-- ==================== AUTHENTIC FJCU GALLERY ==================== -->
-  <section class="py-20 bg-white border-b border-slate-200">
+  <section id="gallery" class="py-20 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
         <div>
@@ -409,8 +434,8 @@
         Copyright © 2026 輔仁大學管理學院 國際經營管理碩士班. 版權所有.
       </div>
       <div class="flex gap-4 font-mono">
-        <a href="https://www.management.fju.edu.tw/" target="_blank" class="hover:text-amber-400">輔大管理學院主網</a>
-        <a href="https://www.fju.edu.tw/" target="_blank" class="hover:text-amber-400">輔仁大學校園網</a>
+        <a href="https://www.management.fju.edu.tw/" target="_blank" rel="noopener" class="hover:text-amber-400">輔大管理學院主網 <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+        <a href="https://www.fju.edu.tw/" target="_blank" rel="noopener" class="hover:text-amber-400">輔仁大學校園網 <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </div>
     </div>
   </footer>
