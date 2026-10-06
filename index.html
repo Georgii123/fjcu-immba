@@ -31,12 +31,9 @@
   <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <span class="px-2 py-0.5 bg-burgundy text-white font-bold text-[10px] uppercase tracking-widest">ADMISSIONS</span>
-        <span class="font-medium text-slate-300 hidden sm:inline">116學年度碩士班甄試招生網路報名：2026/09/30 - 10/13 止</span>
+        <span class="font-medium text-slate-300">Georgii Zhukov F15381061. This is a course project not an official website</span>
       </div>
       <div class="flex items-center gap-4 text-slate-300 font-medium">
-        <span>Course teaching demonstration site by Georgii Zhukov (not the official website)</span>
-        <span>|</span>
         <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">輔大管院 College Site <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </div>
     </div>
@@ -47,7 +44,16 @@
     <!-- Title bar -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-14">
-        <a href="#" class="text-base sm:text-xl font-medium text-[#3a6cb5] hover:text-burgundy transition" data-i18n="nav_title">MBA Program in International Management(imMBA)</a>
+        <a href="#" class="flex items-center text-base sm:text-xl font-medium text-[#3a6cb5] hover:text-burgundy transition">
+          <svg class="w-9 h-9 shrink-0 mr-3" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <circle cx="24" cy="24" r="21" stroke="#800020" stroke-width="2.5"/>
+            <ellipse cx="24" cy="24" rx="9" ry="21" stroke="#800020" stroke-width="1.6"/>
+            <path d="M24 3v42M4 18h40M4 30h40" stroke="#800020" stroke-width="1.6"/>
+            <rect x="12" y="16.5" width="24" height="15" rx="2.5" fill="#800020"/>
+            <text x="24" y="28" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="700" font-size="12" fill="#fff">FJ</text>
+          </svg>
+          <span data-i18n="nav_title">MBA Program in International Management(imMBA)</span>
+        </a>
 
         <div class="hidden sm:flex items-center gap-5 text-xs text-slate-600">
           <a href="#news" class="hover:text-burgundy transition" data-i18n="nav_news">最新消息</a>
@@ -151,7 +157,7 @@
 
   <!-- ==================== BANNER (rebuilt from reference site) ==================== -->
   <section aria-label="imMBA banner" class="relative w-full overflow-hidden bg-[#e9ecef]" style="aspect-ratio:1920/560;min-height:300px">
-    <img src="https://www.management.fju.edu.tw/upfiles/en_/menu21724721726.jpg" alt="" class="absolute inset-0 w-full h-full object-cover object-left" aria-hidden="true">
+    <div class="absolute inset-y-0 left-0 flex items-center justify-center" style="width:34.2%"><img src="assets/img/world-map.svg" alt="" class="h-[84%] w-auto max-w-[90%]" aria-hidden="true"></div>
     <div class="absolute inset-y-0 right-0 flex flex-col justify-center bg-[#3b7a8b] text-white px-5 sm:px-10 lg:px-16" style="left:34.2%">
       <div class="flex items-start gap-3">
         <h1 class="font-medium text-xl sm:text-3xl lg:text-4xl tracking-wide leading-tight" data-i18n="ban_title">國際經營管理碩士班(imMBA)</h1>
@@ -373,10 +379,16 @@
 
   <section id="highlights" class="py-20 bg-slate-50 border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Highlights</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_highlights_title">活動花絮</h2>
-        <p class="text-slate-600 text-sm mt-3 leading-relaxed" data-i18n="sec_highlights_body">此區內容即將更新。</p>
+      <div class="flex flex-wrap items-end justify-between gap-4 mb-12">
+        <div class="max-w-3xl">
+          <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Highlights</div>
+          <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_highlights_title">活動花絮</h2>
+          <p class="text-slate-600 text-xs mt-1" data-i18n="sec_highlights_body">近期招生說明會、新開課程與國際夥伴學校動態。</p>
+        </div>
+        <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subedit.php?EID=36" target="_blank" rel="noopener" class="text-xs font-bold text-burgundy uppercase hover:underline"><span data-i18n="highlights_all">查看全部消息</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+      </div>
+      <div id="highlights-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically by app.js -->
       </div>
     </div>
   </section>

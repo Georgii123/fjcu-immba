@@ -350,6 +350,46 @@ const imMBAData = {
     }
   ],
 
+  // Program Highlights (summaries of the college's Highlights page)
+  highlights: [
+    {
+      date: '2026-09-29', tag_en: 'Admissions', tag_zh: '招生',
+      title_en: 'Admissions Info Session Recap', title_zh: '招生說明會回顧',
+      summary_en: "Chair Dr. Tu Yi-ning walked students through the Admissions Guide and shared news of possible new dual-degree partners in Europe and the U.S. A first-year student described raising her TOEIC score from the 500s to 805 in the English-taught program.",
+      summary_zh: '學程主任涂儀寧教授說明招生簡章，並分享歐美潛在新雙碩士合作學校的進展。一年級同學也分享在全英語環境下，多益成績由 500 多分進步到 805 分。'
+    },
+    {
+      date: '2026-09-22', tag_en: 'Dual Degree', tag_zh: '雙碩士',
+      title_en: 'Two Years, More Than One Master\'s Degree', title_zh: '兩年，不只一個碩士學位',
+      summary_en: 'The 1+1 dual master\'s opportunities let students study in the U.S., France or Spain and, after meeting the requirements of both universities, earn two master\'s degrees.',
+      summary_zh: '1+1 雙碩士讓學生可赴美國、法國或西班牙就讀，修畢兩校要求後取得兩個碩士學位。'
+    },
+    {
+      date: '2026-08-26', tag_en: 'New Course', tag_zh: '新開課程',
+      title_en: 'New Course Spotlight: Data Analytics for International Business', title_zh: '新課程介紹：國際商務資料分析',
+      summary_en: 'Introduced this academic year, the course covers data visualization, statistical analysis and machine learning through real-world business applications.',
+      summary_zh: '本學年新開課程，透過真實商業案例學習資料視覺化、統計分析與機器學習。'
+    },
+    {
+      date: '2026-08-19', tag_en: 'New Course', tag_zh: '新開課程',
+      title_en: 'New Course Spotlight: AI-Assisted Digital Product Development', title_zh: '新課程介紹：AI 輔助數位產品開發',
+      summary_en: 'Students learn product design, web development and data management while building a working digital product with AI, even without coding experience.',
+      summary_zh: '即使沒有程式背景，學生也能在課程中學習產品設計、網頁開發與資料管理，並運用 AI 完成可運作的數位產品。'
+    },
+    {
+      date: '2026-07-29', tag_en: 'Partner School', tag_zh: '合作學校',
+      title_en: 'Partner Spotlight: IQS School of Management', title_zh: '合作學校介紹：IQS 管理學院',
+      summary_en: 'Based in Barcelona and AACSB-accredited, IQS is a dual-degree partner. imMBA students can spend their second year there and are eligible for a tuition discount.',
+      summary_zh: '位於西班牙巴塞隆納、通過 AACSB 認證的 IQS 為雙碩士合作學校，imMBA 學生可於第二年赴該校就讀，並享學費優惠。'
+    },
+    {
+      date: '2026-07-15', tag_en: 'Partner School', tag_zh: '合作學校',
+      title_en: 'Across the Pacific, One More Global Partner', title_zh: '跨越太平洋，新增國際夥伴',
+      summary_en: 'College of Management faculty visited sister school Cal Poly Pomona to discuss a possible 1+1 dual master\'s degree, curriculum alignment and credit transfer.',
+      summary_zh: '管理學院師長拜訪姊妹校加州州立理工大學波莫納分校，洽談 1+1 雙碩士、課程銜接與學分抵免等合作。'
+    }
+  ],
+
   // Form Downloads
   downloads: [
     {
@@ -518,7 +558,8 @@ const i18n = {
     sec_exchange_title: 'Exchange',
     sec_exchange_body: 'Content for this section will be added soon.',
     sec_highlights_title: 'Highlights',
-    sec_highlights_body: 'Content for this section will be added soon.'
+    sec_highlights_body: 'Recent info sessions, new courses and global partner school news.',
+    highlights_all: 'View all highlights'
   },
   zh: {
     nav_brand: '輔大 imMBA',
@@ -594,6 +635,7 @@ const i18n = {
     sec_exchange_title: '交換學生',
     sec_exchange_body: '此區內容即將更新。',
     sec_highlights_title: '活動花絮',
-    sec_highlights_body: '此區內容即將更新。'
+    sec_highlights_body: '近期招生說明會、新開課程與國際夥伴學校動態。',
+    highlights_all: '查看全部消息'
   }
 };

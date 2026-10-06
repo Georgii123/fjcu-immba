@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFaculty();
   renderGlobalPartners();
   renderDownloads();
+  renderHighlights();
   renderGallery();
   initSearchModal();
   initContactForm();
@@ -68,6 +69,7 @@ function setLanguage(lang) {
   renderFaculty();
   renderGlobalPartners();
   renderDownloads();
+  renderHighlights();
   renderGallery();
 }
 
@@ -302,6 +304,22 @@ function renderDownloads() {
         <span>${i18n[currentLang].btn_download} (${d.file.split('.').pop().toUpperCase()})</span>
       </button>
     </div>
+  `).join('');
+}
+
+function renderHighlights() {
+  const container = document.getElementById('highlights-grid');
+  if (!container) return;
+
+  container.innerHTML = imMBAData.highlights.map(h => `
+    <article class="bg-white border border-slate-200 p-6 flex flex-col hover:border-burgundy transition">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-2 py-0.5 bg-burgundy text-white text-[10px] font-bold uppercase tracking-widest">${h[`tag_${currentLang}`]}</span>
+        <span class="text-[11px] text-slate-400 font-mono">${h.date}</span>
+      </div>
+      <h3 class="font-serif text-base font-bold text-slate-900 mb-2">${h[`title_${currentLang}`]}</h3>
+      <p class="text-xs text-slate-600 leading-relaxed">${h[`summary_${currentLang}`]}</p>
+    </article>
   `).join('');
 }
 
