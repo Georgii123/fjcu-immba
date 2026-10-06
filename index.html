@@ -29,19 +29,24 @@
 
   <!-- ==================== TOP ANNOUNCEMENT BAR ==================== -->
   <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center">
+    <div class="relative max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center lg:px-44">
       <span class="font-medium text-slate-300">Georgii Zhukov F15381061. This is a course project not an official website</span>
       <span class="hidden sm:inline text-slate-600" aria-hidden="true">|</span>
       <span class="text-slate-300 font-medium whitespace-nowrap">
         <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">Official imMBA website <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </span>
+      <!-- Collapse / expand the header (menu + branding); language switch and Apply stay visible -->
+      <button id="menu-collapse-btn" type="button" aria-expanded="true" aria-controls="main-menu brand-bar" class="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 items-center gap-1.5 px-2.5 py-1 border border-slate-600 text-[11px] font-bold text-slate-200 hover:border-white hover:text-white transition whitespace-nowrap">
+        <span id="menu-collapse-label" data-i18n="nav_collapse">Collapse main menu</span>
+        <svg id="menu-collapse-icon" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+      </button>
     </div>
   </div>
 
   <!-- ==================== MAIN HEADER / NAVIGATION ==================== -->
   <header id="navbar" class="sticky top-0 z-40 transition-all duration-200 bg-white border-b border-slate-200">
-    <!-- Title bar -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Title bar (branding) -->
+    <div id="brand-bar" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between lg:justify-center h-14">
         <a href="#" class="flex items-center text-base sm:text-xl font-medium text-[#3a6cb5] hover:text-burgundy transition">
           <svg class="w-9 h-9 shrink-0 mr-3" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -111,11 +116,6 @@
           </div>
           <!-- Apply CTA -->
           <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition whitespace-nowrap"><span data-i18n="btn_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
-          <!-- Collapse / expand the main menu -->
-          <button id="menu-collapse-btn" type="button" aria-expanded="true" aria-controls="main-menu" class="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-xs font-bold text-slate-700 hover:border-burgundy hover:text-burgundy transition whitespace-nowrap">
-            <span id="menu-collapse-label" data-i18n="nav_collapse">Collapse main menu</span>
-            <svg id="menu-collapse-icon" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
-          </button>
         </div>
       </div>
     </div>

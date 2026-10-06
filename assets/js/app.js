@@ -76,15 +76,17 @@ function setLanguage(lang) {
   renderGallery();
 }
 
-// Collapse / expand the main menu (language switch and Apply button stay visible)
+// Collapse / expand the menu and branding bar (language switch and Apply button stay visible)
 function initMenuCollapse() {
   const btn = document.getElementById('menu-collapse-btn');
   const menu = document.getElementById('main-menu');
+  const brand = document.getElementById('brand-bar');
   const label = document.getElementById('menu-collapse-label');
   const icon = document.getElementById('menu-collapse-icon');
   if (!btn || !menu) return;
   btn.addEventListener('click', () => {
     const collapsed = menu.classList.toggle('hidden');
+    if (brand) brand.classList.toggle('hidden', collapsed);
     const key = collapsed ? 'nav_expand' : 'nav_collapse';
     label.setAttribute('data-i18n', key);
     label.textContent = i18n[currentLang][key];
