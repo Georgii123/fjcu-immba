@@ -33,7 +33,7 @@
       <div class="hidden md:block flex-1"></div>
       <div class="font-medium text-slate-300 text-center">Georgii Zhukov F15381061. This is a course project not an official website</div>
       <div class="flex-1 flex justify-end text-slate-300 font-medium whitespace-nowrap">
-        <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">輔大管院 College Site <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+        <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">Official imMBA website <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </div>
     </div>
   </div>
@@ -54,30 +54,8 @@
           <span data-i18n="nav_title">MBA Program in International Management(imMBA)</span>
         </a>
 
-        <div class="hidden sm:flex items-center gap-5 text-xs text-slate-600">
-          <a href="#news" class="hover:text-burgundy transition" data-i18n="nav_news">最新消息</a>
-          <a href="#contact" class="hover:text-burgundy transition" data-i18n="nav_contact">聯絡我們</a>
-          <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="hover:text-burgundy transition" data-i18n="nav_college_link">College of Management, FJCU</a>
-
-          <!-- Search Trigger -->
-          <button onclick="openSearchModal()" title="Search" class="p-2 text-slate-500 hover:text-burgundy transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </button>
-
-          <!-- Language Switcher -->
-          <div class="flex items-center border border-slate-200">
-            <button id="btn-lang-zh" class="px-2.5 py-1 text-xs font-bold bg-burgundy text-white">中文</button>
-            <button id="btn-lang-en" class="px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900">EN</button>
-          </div>
-
-          <!-- Apply CTA -->
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition" data-i18n="btn_apply">
-            立即報名 <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>
-          </a>
-        </div>
-
         <!-- Mobile Toggle Button -->
-        <button id="mobile-menu-btn" class="lg:hidden sm:ml-3 p-2 text-slate-700">
+        <button id="mobile-menu-btn" class="lg:hidden p-2 text-slate-700">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>
@@ -85,7 +63,8 @@
 
     <!-- Main menu with dropdowns -->
     <div class="hidden lg:block border-t border-slate-100">
-      <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-center text-[14px] font-semibold text-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
+        <nav class="flex flex-1 flex-wrap items-center justify-center text-[14px] font-semibold text-slate-800">
           <div class="relative group flex items-center">
             <a href="#about" class="px-3.5 py-3 hover:text-burgundy transition" data-i18n="nav_about">關於學程</a>
             <div class="absolute left-1/2 -translate-x-1/2 top-full hidden group-hover:block group-focus-within:block z-50">
@@ -123,6 +102,17 @@
           <a href="#downloads" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_downloads">表格下載</span></a>
           <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_college_menu">管理學院</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </nav>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <!-- Language Switcher -->
+          <div class="flex items-center border border-slate-200">
+            <button id="btn-lang-zh" class="px-2.5 py-1 text-xs font-bold bg-burgundy text-white">中文</button>
+            <button id="btn-lang-en" class="px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900">EN</button>
+          </div>
+          <!-- Apply CTA -->
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition whitespace-nowrap"><span data-i18n="btn_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+        </div>
+      </div>
     </div>
 
     <!-- Mobile Dropdown Menu -->
@@ -141,6 +131,7 @@
       <a href="#downloads" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_downloads">表格下載</a>
       <a href="#contact" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_contact">聯絡我們</a>
       <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="block text-slate-800 font-bold text-sm hover:text-burgundy"><span data-i18n="nav_college_menu">管理學院</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+      <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="block text-center px-5 py-2.5 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider"><span data-i18n="btn_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
         <span class="text-xs text-slate-500">Language / 語言：</span>
         <div class="flex border border-slate-200">
@@ -152,317 +143,26 @@
   </header>
 
 
-  <!-- ==================== ABOUT imMBA (EDITORIAL 2-COLUMN) ==================== -->
-  <section id="about" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="grid lg:grid-cols-12 gap-12 items-center">
-        <!-- Left Photo Banner -->
-        <div class="lg:col-span-5 relative group overflow-hidden shadow-md bg-slate-900">
-          <img src="https://www.management.fju.edu.tw/upfiles/tw_/menu01495163361.jpg" alt="FJCU imMBA Learning Environment" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-          <div class="absolute bottom-6 left-6 right-6 text-white">
-            <span class="px-2 py-0.5 bg-burgundy text-white text-[10px] font-bold uppercase tracking-widest mb-1 inline-block">CAMPUS LIFE</span>
-            <h4 class="font-serif text-lg font-bold">AACSB 認證師資與國際學生互動課堂</h4>
-          </div>
+  <!-- ==================== HERO ==================== -->
+  <section class="relative overflow-hidden text-white bg-gradient-to-br from-slate-900 via-slate-900 to-[#3a0012]">
+    <img src="assets/img/world-map.svg" alt="" aria-hidden="true" class="absolute -right-24 top-1/2 -translate-y-1/2 h-[135%] w-auto max-w-none opacity-[0.07] pointer-events-none select-none">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-24 md:py-36">
+      <div class="max-w-3xl">
+        <div class="inline-block px-3 py-1 bg-burgundy text-white text-xs font-mono font-bold uppercase tracking-widest mb-6">
+          <span data-i18n="hero_badge">AACSB ACCREDITED | EDUNIVERSAL TOP 3 IN TAIWAN</span>
         </div>
 
-        <!-- Right Editorial Content -->
-        <div class="lg:col-span-7">
-          <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-2 font-mono">Academic Distinction</div>
-          <h2 class="font-serif text-3xl font-bold text-slate-900 mb-6" data-i18n="sec_about_title">輔大 imMBA 卓越優勢</h2>
-          <p class="text-slate-600 text-sm leading-relaxed mb-8">
-            輔仁大學是知名綜合型大學，歷史悠久，在國際上擁有獨特的天主教與耶穌會黃金校友網絡。輔大管理學院於 2005 年通過 AACSB 國際商學院認證（兩岸首家），並於 2010、2015、2020 及 2025 年連續持續通過認證，辦學品質榮獲全球前 5% 頂尖商學院認證肯定。
-          </p>
+        <!-- Headline -->
+        <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6" data-i18n="hero_title">培育引領全球商業未來的國際管理領袖</h1>
 
-          <!-- Key rankings (short) -->
-          <div id="stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            <!-- Rendered dynamically by app.js -->
-          </div>
+        <!-- Value proposition -->
+        <p class="text-base sm:text-lg text-slate-200 mb-10 leading-relaxed font-light" data-i18n="hero_subtitle">輔仁大學國際經營管理碩士班 (imMBA) — 100% 全英語授課、歐洲名校雙碩士學位與跨國多元文化學習環境。</p>
 
-          <!-- Core Feature Pillars Grid -->
-          <div id="features-grid" class="grid sm:grid-cols-2 gap-6">
-            <!-- Rendered dynamically by app.js -->
-          </div>
+        <!-- CTA buttons -->
+        <div class="flex flex-wrap items-center gap-4">
+          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-8 py-3.5 bg-burgundy hover:bg-burgundyDark text-white font-bold text-xs uppercase tracking-widest shadow-md transition"><span data-i18n="hero_cta_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+          <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="px-8 py-3.5 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs uppercase tracking-widest transition"><span data-i18n="hero_cta_explore">了解學程</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </div>
-      </div>
-
-    </div>
-  </section>
-
-
-  <!-- ==================== LATEST NEWS & INSIGHTS ==================== -->
-  <section id="news" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-slate-200 pb-6">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">News & Updates</div>
-          <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_news_title">最新消息與觀點</h2>
-          <p class="text-slate-500 text-xs mt-1" data-i18n="sec_news_subtitle">即時掌握最新招生時程、學術講座與全球雙聯 partner 動向。</p>
-        </div>
-
-        <!-- Category Tabs -->
-        <div class="mt-6 md:mt-0 flex flex-wrap gap-2">
-          <button onclick="filterAnnouncements('all')" data-category="all" class="news-tab-btn px-4 py-2 text-xs font-bold uppercase tracking-wider bg-burgundy text-white border border-burgundy transition">全部 (All)</button>
-          <button onclick="filterAnnouncements('admissions')" data-category="admissions" class="news-tab-btn px-4 py-2 text-xs font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200 hover:border-slate-400 transition">招生 (Admissions)</button>
-          <button onclick="filterAnnouncements('academic')" data-category="academic" class="news-tab-btn px-4 py-2 text-xs font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200 hover:border-slate-400 transition">學術 (Academic)</button>
-          <button onclick="filterAnnouncements('events')" data-category="events" class="news-tab-btn px-4 py-2 text-xs font-bold uppercase tracking-wider bg-white text-slate-700 border border-slate-200 hover:border-slate-400 transition">職涯 (Career)</button>
-        </div>
-      </div>
-
-      <!-- News List -->
-      <div id="announcements-list" class="space-y-6">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== ADMISSIONS & SELECTION ==================== -->
-  <section id="admissions" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Admission Portal</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_admissions_title">招生與選拔</h2>
-        <p class="text-slate-600 text-xs mt-1" data-i18n="sec_admissions_subtitle">針對國內甄試/碩士班及外國學生提供完整入學管道與獎學金。</p>
-      </div>
-
-      <!-- Admission Tracks Grid -->
-      <div id="admission-tracks" class="grid md:grid-cols-2 gap-8 mb-12">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-
-      <!-- Document Checklist -->
-      <div class="bg-white border border-slate-200 p-8">
-        <h3 class="font-serif text-lg font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center justify-between">
-          <span>招生審查應繳交資料 (Checklist of Required Documents)</span>
-          <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="text-xs font-bold text-burgundy uppercase hover:underline">116學年度簡章與報名 →<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
-        </h3>
-        <ul id="admission-docs" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <!-- Rendered dynamically by app.js -->
-        </ul>
-      </div>
-
-    </div>
-  </section>
-
-
-  <!-- ==================== ACADEMICS & CURRICULUM ==================== -->
-  <section id="curriculum" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Curriculum Architecture</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_curriculum_title">嚴謹學術課程</h2>
-        <p class="text-slate-600 text-xs mt-1" data-i18n="sec_curriculum_subtitle">42 學分全英語碩士課程，涵蓋跨國策略、數據分析與永續經營。</p>
-      </div>
-
-      <div id="curriculum-grid" class="grid md:grid-cols-2 gap-8">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== FACULTY DIRECTORY ==================== -->
-  <section id="faculty" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Scholarship & Research</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_faculty_title">國際頂尖師資</h2>
-        <p class="text-slate-600 text-xs mt-1" data-i18n="sec_faculty_subtitle">匯聚全球名校博士與具豐富產業顧問經驗之教授群。</p>
-      </div>
-
-      <div id="faculty-grid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <section id="guide" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mb-8">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Program Guide</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_guide_title">學程指南</h2>
-      </div>
-      <div id="info-guide" class="max-w-3xl space-y-4 text-sm text-slate-700 leading-relaxed">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <section id="graduation" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mb-8">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Graduation</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_graduation_title">畢業規定</h2>
-      </div>
-      <div id="info-graduation" class="max-w-3xl space-y-4 text-sm text-slate-700 leading-relaxed">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== GLOBAL DUAL DEGREE SPOTLIGHT ==================== -->
-  <section id="global" class="py-20 bg-slate-900 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-1 font-mono">Global Mobility</div>
-        <h2 class="font-serif text-3xl font-bold text-white" data-i18n="sec_global_title">跨國雙碩士與海外交換</h2>
-        <p class="text-slate-400 text-xs mt-1" data-i18n="sec_global_subtitle">前往西班牙巴塞隆納 IQS 管理學院取得雙碩士，或至全球 100+ 姊妹校交換。</p>
-      </div>
-
-      <div id="global-partners-grid" class="grid md:grid-cols-3 gap-8">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <section id="exchange" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mb-8">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Overseas Exchange</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_exchange_title">海外交換</h2>
-      </div>
-      <div id="info-exchange" class="max-w-3xl space-y-4 text-sm text-slate-700 leading-relaxed">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <section id="marketplace" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mb-8">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Marketplace</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_marketplace_title">職缺平台</h2>
-      </div>
-      <div id="info-marketplace" class="max-w-3xl space-y-4 text-sm text-slate-700 leading-relaxed">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== AUTHENTIC FJCU GALLERY ==================== -->
-  <section id="gallery" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono">Campus Experience</div>
-          <h2 class="font-serif text-2xl font-bold text-slate-900">imMBA 校園活動與國際交流照片</h2>
-        </div>
-      </div>
-
-      <div id="gallery-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <section id="highlights" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-wrap items-end justify-between gap-4 mb-12">
-        <div class="max-w-3xl">
-          <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Events</div>
-          <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_highlights_title">活動花絮</h2>
-          <p class="text-slate-600 text-xs mt-1" data-i18n="sec_highlights_body">近期招生說明會、新開課程與國際夥伴學校動態。</p>
-        </div>
-        <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/subedit.php?EID=36" target="_blank" rel="noopener" class="text-xs font-bold text-burgundy uppercase hover:underline"><span data-i18n="highlights_all">查看全部消息</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
-      </div>
-      <div id="highlights-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== DOWNLOAD CENTER ==================== -->
-  <section id="downloads" class="py-20 bg-slate-50 border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">Downloads</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_downloads_title">文件與表單下載專區</h2>
-        <p class="text-slate-600 text-xs mt-1" data-i18n="sec_downloads_subtitle">提供審查表單、自傳讀書計畫範例、抵免申請與畢業檢核表下載。</p>
-      </div>
-
-      <div id="downloads-list" class="max-w-4xl space-y-3">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ==================== CONTACT US ==================== -->
-  <section id="contact" class="py-20 bg-slate-900 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div class="grid lg:grid-cols-12 gap-12">
-        
-        <!-- Info Left -->
-        <div class="lg:col-span-5">
-          <div class="text-xs font-bold uppercase tracking-widest text-amber-400 mb-1 font-mono">Admissions Office</div>
-          <h2 class="font-serif text-3xl font-bold text-white mb-6" data-i18n="sec_contact_title">聯絡學程辦公室</h2>
-          <p class="text-slate-300 text-xs mb-8 leading-relaxed" data-i18n="sec_contact_subtitle">
-            歡迎親臨輔大管理學院 LM 大樓，或透過以下表單與我們聯繫。
-          </p>
-
-          <div class="space-y-4 text-xs text-slate-300 font-mono">
-            <div class="flex items-start gap-3">
-              <span class="text-amber-400 font-bold">📍</span>
-              <div>
-                <strong class="text-white block font-sans" data-i18n="contact_address">242062 新北市新莊區中正路510號 輔仁大學管理學院</strong>
-                <span class="text-slate-400" data-i18n="contact_office">管理學院 LM大樓 412室 (imMBA 學程辦公室)</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-amber-400 font-bold">📞</span>
-              <span data-i18n="contact_phone">(02) 2905-2960 / (02) 2905-3985</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-amber-400 font-bold">✉️</span>
-              <span data-i18n="contact_email">immba@mail.fju.edu.tw</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Form Right -->
-        <div class="lg:col-span-7 bg-slate-950 p-8 border border-slate-800">
-          <form id="contact-form" class="space-y-4">
-            <div class="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1 font-mono" data-i18n="form_name">您的姓名</label>
-                <input type="text" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-burgundy">
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1 font-mono" data-i18n="form_email">電子郵件</label>
-                <input type="email" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-burgundy">
-              </div>
-            </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1 font-mono" data-i18n="form_subject">詢問主題</label>
-              <input type="text" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-burgundy">
-            </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-300 uppercase mb-1 font-mono" data-i18n="form_message">諮詢內容</label>
-              <textarea rows="4" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 text-white text-xs focus:outline-none focus:border-burgundy"></textarea>
-            </div>
-            <button type="submit" class="w-full py-3 bg-burgundy hover:bg-burgundyDark text-white font-bold text-xs uppercase tracking-widest transition" data-i18n="form_submit">
-              送出詢問
-            </button>
-          </form>
-        </div>
-
       </div>
     </div>
   </section>

@@ -772,7 +772,9 @@ const i18n = {
     nav_events: 'Events',
     nav_announcements: 'Announcements',
     nav_college_menu: 'College of Management',
-    sec_marketplace_title: 'Marketplace'
+    sec_marketplace_title: 'Marketplace',
+    hero_cta_apply: 'Apply Now',
+    hero_cta_explore: 'Explore the Program'
   },
   zh: {
     nav_brand: '輔大 imMBA',
@@ -854,6 +856,8 @@ const i18n = {
     nav_events: '活動花絮',
     nav_announcements: '最新公告',
     nav_college_menu: '管理學院',
-    sec_marketplace_title: '職缺平台'
+    sec_marketplace_title: '職缺平台',
+    hero_cta_apply: '立即報名',
+    hero_cta_explore: '了解學程'
   }
 };
