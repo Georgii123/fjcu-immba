@@ -8,6 +8,7 @@ let activeCategory = 'all';
 
 document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
+  initMenuCollapse();
   initStats();
   renderAnnouncements();
   renderFeatures();
@@ -73,6 +74,23 @@ function setLanguage(lang) {
   renderHighlights();
   renderInfoSections();
   renderGallery();
+}
+
+// Collapse / expand the main menu (language switch and Apply button stay visible)
+function initMenuCollapse() {
+  const btn = document.getElementById('menu-collapse-btn');
+  const menu = document.getElementById('main-menu');
+  const label = document.getElementById('menu-collapse-label');
+  const icon = document.getElementById('menu-collapse-icon');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', () => {
+    const collapsed = menu.classList.toggle('hidden');
+    const key = collapsed ? 'nav_expand' : 'nav_collapse';
+    label.setAttribute('data-i18n', key);
+    label.textContent = i18n[currentLang][key];
+    icon.style.transform = collapsed ? 'rotate(180deg)' : '';
+    btn.setAttribute('aria-expanded', String(!collapsed));
+  });
 }
 
 function initLanguage() {

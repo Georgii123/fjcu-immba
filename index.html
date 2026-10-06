@@ -29,12 +29,12 @@
 
   <!-- ==================== TOP ANNOUNCEMENT BAR ==================== -->
   <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-      <div class="hidden md:block flex-1"></div>
-      <div class="font-medium text-slate-300 text-center">Georgii Zhukov F15381061. This is a course project not an official website</div>
-      <div class="flex-1 flex justify-end text-slate-300 font-medium whitespace-nowrap">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center">
+      <span class="font-medium text-slate-300">Georgii Zhukov F15381061. This is a course project not an official website</span>
+      <span class="hidden sm:inline text-slate-600" aria-hidden="true">|</span>
+      <span class="text-slate-300 font-medium whitespace-nowrap">
         <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">Official imMBA website <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
-      </div>
+      </span>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
     <!-- Main menu with dropdowns -->
     <div class="hidden lg:block border-t border-slate-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
-        <nav class="flex flex-1 flex-wrap items-center justify-center text-[14px] font-semibold text-slate-800">
+        <nav id="main-menu" class="flex flex-1 flex-wrap items-center justify-center text-[14px] font-semibold text-slate-800">
           <div class="relative group flex items-center">
             <a href="#about" class="px-3.5 py-3 hover:text-burgundy transition" data-i18n="nav_about">關於學程</a>
             <div class="absolute left-1/2 -translate-x-1/2 top-full hidden group-hover:block group-focus-within:block z-50">
@@ -103,7 +103,7 @@
           <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_college_menu">管理學院</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </nav>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-3 shrink-0 ml-auto">
           <!-- Language Switcher -->
           <div class="flex items-center border border-slate-200">
             <button id="btn-lang-zh" class="px-2.5 py-1 text-xs font-bold bg-burgundy text-white">中文</button>
@@ -111,6 +111,11 @@
           </div>
           <!-- Apply CTA -->
           <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition whitespace-nowrap"><span data-i18n="btn_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+          <!-- Collapse / expand the main menu -->
+          <button id="menu-collapse-btn" type="button" aria-expanded="true" aria-controls="main-menu" class="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-xs font-bold text-slate-700 hover:border-burgundy hover:text-burgundy transition whitespace-nowrap">
+            <span id="menu-collapse-label" data-i18n="nav_collapse">Collapse main menu</span>
+            <svg id="menu-collapse-icon" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -147,7 +152,7 @@
   <section class="relative overflow-hidden text-white bg-gradient-to-br from-slate-900 via-slate-900 to-[#3a0012]">
     <img src="assets/img/world-map.svg" alt="" aria-hidden="true" class="absolute -right-24 top-1/2 -translate-y-1/2 h-[135%] w-auto max-w-none opacity-[0.07] pointer-events-none select-none">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-24 md:py-36">
-      <div class="max-w-3xl">
+      <div class="max-w-3xl mx-auto text-center">
         <div class="inline-block px-3 py-1 bg-burgundy text-white text-xs font-mono font-bold uppercase tracking-widest mb-6">
           <span data-i18n="hero_badge">AACSB ACCREDITED | EDUNIVERSAL TOP 3 IN TAIWAN</span>
         </div>
@@ -159,7 +164,7 @@
         <p class="text-base sm:text-lg text-slate-200 mb-10 leading-relaxed font-light" data-i18n="hero_subtitle">輔仁大學國際經營管理碩士班 (imMBA) — 100% 全英語授課、歐洲名校雙碩士學位與跨國多元文化學習環境。</p>
 
         <!-- CTA buttons -->
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap items-center justify-center gap-4">
           <a href="https://exam.fju.edu.tw/admission/251" target="_blank" rel="noopener" class="px-8 py-3.5 bg-burgundy hover:bg-burgundyDark text-white font-bold text-xs uppercase tracking-widest shadow-md transition"><span data-i18n="hero_cta_apply">立即報名</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
           <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="px-8 py-3.5 bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs uppercase tracking-widest transition"><span data-i18n="hero_cta_explore">了解學程</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </div>
