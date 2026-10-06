@@ -8,6 +8,8 @@ const imMBAData = {
   stats: [
     {
       id: 'aacsb',
+      short_en: 'AACSB accredited',
+      short_zh: 'AACSB 國際認證',
       number: 'Top 5%',
       label_en: 'AACSB Accredited Worldwide',
       label_zh: '全球前 5% AACSB 國際商管認證',
@@ -16,6 +18,8 @@ const imMBAData = {
     },
     {
       id: 'ranking',
+      short_en: 'Taiwan top 3 (Eduniversal)',
+      short_zh: 'Eduniversal 全台前三',
       number: 'Top 3',
       label_en: 'Taiwan Ranking (Eduniversal)',
       label_zh: 'Eduniversal 國際經營管理全台 Top 3',
@@ -24,6 +28,8 @@ const imMBAData = {
     },
     {
       id: 'bilingual',
+      short_en: 'English-taught',
+      short_zh: '全英語授課',
       number: '100%',
       label_en: 'English-Taught Master Program',
       label_zh: '100% 全英語授課碩士課程',
@@ -32,6 +38,8 @@ const imMBAData = {
     },
     {
       id: 'global',
+      short_en: 'Partner universities',
+      short_zh: '所全球姊妹校',
       number: '100+',
       label_en: 'Global Partner Universities',
       label_zh: '100+ 所全球頂尖姊妹校交換',
@@ -351,6 +359,206 @@ const imMBAData = {
   ],
 
   // Program Highlights (summaries of the college's Highlights page)
+  // Text blocks for the Guide / Graduation / Exchange / Marketplace sections
+  info: {
+    "guide": [
+      {
+        "t": "p",
+        "en": "The imMBA Admissions Guide explains the application process, program resources and international study opportunities. A printed copy is available at the imMBA office (LM208-1).",
+        "zh": "imMBA 招生簡章說明報名流程、學程資源與國際學習機會，可至 imMBA 辦公室（LM208-1）索取紙本。"
+      },
+      {
+        "t": "h",
+        "en": "Key dates for 2027 admissions",
+        "zh": "2027 年入學重要日期"
+      },
+      {
+        "t": "ul",
+        "en": [
+          "Local students: application period Sep 30 – Oct 13 (2026).",
+          "International students: Spring 2027 track, apply Sep 14 – Oct 14 (open to international students only)."
+        ],
+        "zh": [
+          "國內學生：2026 年 9 月 30 日至 10 月 13 日報名。",
+          "外籍學生：2027 年春季班，9 月 14 日至 10 月 14 日申請（僅限外籍生）。"
+        ]
+      },
+      {
+        "t": "links",
+        "items": [
+          {
+            "en": "Apply for Fu Jen imMBA",
+            "zh": "報名輔大 imMBA",
+            "url": "https://www.management.fju.edu.tw/esubweb/immbaengindex/enroll.php?IID=3",
+            "pdf": false
+          },
+          {
+            "en": "Spring 2027 international track: documents and details",
+            "zh": "2027 春季班外籍生申請：文件與說明",
+            "url": "https://www.management.fju.edu.tw/esubweb/immbaengindex/news-detail.php?NID=187",
+            "pdf": false
+          }
+        ]
+      }
+    ],
+    "graduation": [
+      {
+        "t": "p",
+        "en": "Graduation requirements depend on the year you enrolled. Choose the version that applies to you:",
+        "zh": "畢業規定依入學年度而異，請選擇適用的版本："
+      },
+      {
+        "t": "links",
+        "items": [
+          {
+            "en": "Students enrolled in / from fall 2025",
+            "zh": "2025 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202025%20(v2026%2005%2018)(1).pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2024",
+            "zh": "2024 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202024%20(v2024%200516).pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2023",
+            "zh": "2023 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202023%20(v20221124).pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2021",
+            "zh": "2021 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202021%20(v20210429)%20r1.pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2018",
+            "zh": "2018 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202018%20(v20180719)%20r1.pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2017",
+            "zh": "2017 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/GR-ENG-Fall%202017%20(v20180719)%20r1.pdf",
+            "pdf": true
+          },
+          {
+            "en": "Students enrolled in / from fall 2014",
+            "zh": "2014 年秋季入學起",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/2014(1).pdf",
+            "pdf": true
+          }
+        ]
+      },
+      {
+        "t": "ul",
+        "en": [
+          "Each semester, the imMBA office releases a list of professors in late March and September for students to select their thesis advisor.",
+          "To keep the right to apply for the thesis defense and graduate, enroll in \"THESIS\" before the add/drop period of the semester you plan to defend."
+        ],
+        "zh": [
+          "每學期於 3 月底與 9 月底，imMBA 辦公室會公布可指導論文的教授名單，供同學選擇論文指導教授。",
+          "為保留申請論文口試與畢業的資格，請於預計口試的學期加退選截止前加選「論文」。"
+        ]
+      },
+      {
+        "t": "h",
+        "en": "Thesis, defense process and graduation guideline",
+        "zh": "論文、口試流程與畢業準則"
+      },
+      {
+        "t": "links",
+        "items": [
+          {
+            "en": "Overall steps for the thesis defense and graduation",
+            "zh": "論文口試與畢業流程總覽",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/OD%20Process%202026%200709.pdf",
+            "pdf": true
+          },
+          {
+            "en": "Thesis resources from FJCU library",
+            "zh": "輔大圖書館論文寫作資源",
+            "url": "https://home.lib.fju.edu.tw/TC/essaywriting",
+            "pdf": false
+          },
+          {
+            "en": "00 Thesis Format",
+            "zh": "00 論文格式",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/imMBA%20thesis%20format%201210.pdf",
+            "pdf": true
+          },
+          {
+            "en": "01 Thesis Final Defense Agreement",
+            "zh": "01 論文口試同意書",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/01%20OD%20Agreement%202026%200825.pdf",
+            "pdf": true
+          },
+          {
+            "en": "02 Thesis Acceptance",
+            "zh": "02 論文受理書",
+            "url": "https://www.management.fju.edu.tw/smarteditupfiles/immbaengindex/02%20Acceptance(1).pdf",
+            "pdf": true
+          }
+        ]
+      }
+    ],
+    "exchange": [
+      {
+        "t": "p",
+        "en": "Global tuition-free exchange program with partner schools worldwide.",
+        "zh": "與全球姊妹校的免學費交換學生計畫。"
+      },
+      {
+        "t": "p",
+        "en": "With abundant resources in academic networking, Fu Jen Catholic University has partner schools around the world and offers a tuition-free exchange program.",
+        "zh": "輔仁大學學術網絡資源豐富，與全球多所學校締結姊妹校，並提供免學費交換計畫。"
+      },
+      {
+        "t": "p",
+        "en": "imMBA students who do not plan to join a dual degree program at a partner institution abroad are encouraged to use this opportunity to broaden their international perspectives and cross-cultural experience.",
+        "zh": "若不打算參加海外合作學校的雙碩士學位，鼓勵 imMBA 學生善用此機會拓展國際視野與跨文化經驗。"
+      },
+      {
+        "t": "p",
+        "en": "Application procedures, requirements, deadlines and school information are available from the Fu Jen International Student Center.",
+        "zh": "申請流程、資格、截止日期與學校資訊，請洽輔仁大學國際學生中心。"
+      },
+      {
+        "t": "links",
+        "items": [
+          {
+            "en": "Fu Jen International Student Center: tuition-free exchange program",
+            "zh": "輔仁大學國際學生中心：免學費交換計畫",
+            "url": "http://isc.oie.fju.edu.tw/generalServices.jsp?labelID=39",
+            "pdf": false
+          }
+        ]
+      }
+    ],
+    "marketplace": [
+      {
+        "t": "p",
+        "en": "The College of Management Career Platform lists job openings for students and alumni.",
+        "zh": "管理學院就業平台提供學生與校友的職缺資訊。"
+      },
+      {
+        "t": "links",
+        "items": [
+          {
+            "en": "College of Management Career Platform: Job Openings (Chinese-language page)",
+            "zh": "管理學院就業平台：職缺資訊",
+            "url": "https://www.management.fju.edu.tw/zh-tw/job/opening.php",
+            "pdf": false
+          }
+        ]
+      }
+    ]
+  },
+
   highlights: [
     {
       date: '2026-09-29', tag_en: 'Admissions', tag_zh: '招生',
@@ -491,7 +699,7 @@ const i18n = {
     nav_about: 'About',
     nav_news: 'News',
     nav_admissions: 'Admissions',
-    nav_curriculum: 'Courses',
+    nav_curriculum: 'Curriculum',
     nav_faculty: 'Faculty',
     nav_global: 'Dual Degree',
     nav_downloads: 'Downloads',
@@ -542,7 +750,7 @@ const i18n = {
     nav_college_link: 'College of Management, FJCU',
     nav_guide: 'imMBA Guide',
     nav_graduation: 'Graduation',
-    nav_exchange: 'Exchange',
+    nav_exchange: 'Overseas Exchange',
     nav_highlights: 'Highlights',
     ban_title: 'International Management MBA (imMBA)',
     ban_badge: 'All-English MBA',
@@ -555,11 +763,16 @@ const i18n = {
     sec_guide_body: 'Content for this section will be added soon.',
     sec_graduation_title: 'Graduation',
     sec_graduation_body: 'Content for this section will be added soon. The graduation checklist is available under Forms & Downloads.',
-    sec_exchange_title: 'Exchange',
+    sec_exchange_title: 'Overseas Exchange',
     sec_exchange_body: 'Content for this section will be added soon.',
-    sec_highlights_title: 'Highlights',
+    sec_highlights_title: 'Events',
     sec_highlights_body: 'Recent info sessions, new courses and global partner school news.',
-    highlights_all: 'View all highlights'
+    highlights_all: 'View all highlights',
+    nav_marketplace: 'Marketplace',
+    nav_events: 'Events',
+    nav_announcements: 'Announcements',
+    nav_college_menu: 'College of Management',
+    sec_marketplace_title: 'Marketplace'
   },
   zh: {
     nav_brand: '輔大 imMBA',
@@ -619,7 +832,7 @@ const i18n = {
     nav_college_link: '輔大管理學院',
     nav_guide: '學程指南',
     nav_graduation: '畢業規定',
-    nav_exchange: '交換學生',
+    nav_exchange: '海外交換',
     nav_highlights: '活動花絮',
     ban_title: '國際經營管理碩士班(imMBA)',
     ban_badge: '全英 MBA',
@@ -632,10 +845,15 @@ const i18n = {
     sec_guide_body: '此區內容即將更新。',
     sec_graduation_title: '畢業規定',
     sec_graduation_body: '此區內容即將更新。畢業檢核表可至「表格與文件下載」取得。',
-    sec_exchange_title: '交換學生',
+    sec_exchange_title: '海外交換',
     sec_exchange_body: '此區內容即將更新。',
     sec_highlights_title: '活動花絮',
     sec_highlights_body: '近期招生說明會、新開課程與國際夥伴學校動態。',
-    highlights_all: '查看全部消息'
+    highlights_all: '查看全部消息',
+    nav_marketplace: '職缺平台',
+    nav_events: '活動花絮',
+    nav_announcements: '最新公告',
+    nav_college_menu: '管理學院',
+    sec_marketplace_title: '職缺平台'
   }
 };

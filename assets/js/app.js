@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderGlobalPartners();
   renderDownloads();
   renderHighlights();
+  renderInfoSections();
   renderGallery();
   initSearchModal();
   initContactForm();
@@ -70,6 +71,7 @@ function setLanguage(lang) {
   renderGlobalPartners();
   renderDownloads();
   renderHighlights();
+  renderInfoSections();
   renderGallery();
 }
 
@@ -87,10 +89,9 @@ function initStats() {
   if (!container) return;
 
   container.innerHTML = imMBAData.stats.map(stat => `
-    <div class="p-6 border-t-2 border-burgundy bg-white text-center">
-      <div class="text-3xl lg:text-4xl font-serif font-bold text-slate-900 mb-1">${stat.number}</div>
-      <div class="text-sm font-bold text-slate-800 mb-1 leading-snug">${stat[`label_${currentLang}`]}</div>
-      <div class="text-xs text-slate-500 leading-relaxed">${stat[`desc_${currentLang}`]}</div>
+    <div class="py-3 px-2 border-t-2 border-burgundy bg-white text-center">
+      <div class="text-xl lg:text-2xl font-serif font-bold text-slate-900">${stat.number}</div>
+      <div class="text-[11px] font-bold text-slate-600 leading-snug">${stat[`short_${currentLang}`]}</div>
     </div>
   `).join('');
 }
@@ -305,6 +306,21 @@ function renderDownloads() {
       </button>
     </div>
   `).join('');
+}
+
+function renderInfoSections() {
+  const ext = '<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>';
+  Object.entries(imMBAData.info).forEach(([id, blocks]) => {
+    const container = document.getElementById(`info-${id}`);
+    if (!container) return;
+    container.innerHTML = blocks.map(b => {
+      if (b.t === 'p') return `<p>${b[currentLang]}</p>`;
+      if (b.t === 'h') return `<h3 class="font-serif text-lg font-bold text-slate-900 pt-2">${b[currentLang]}</h3>`;
+      if (b.t === 'ul') return `<ul class="list-disc pl-5 space-y-2">${b[currentLang].map(t => `<li>${t}</li>`).join('')}</ul>`;
+      return `<ul class="space-y-2">${b.items.map(l => `
+        <li><a href="${l.url}" target="_blank" rel="noopener" class="font-semibold text-burgundy hover:underline">${l[currentLang]}${l.pdf ? ' (PDF)' : ''} ${ext}</a></li>`).join('')}</ul>`;
+    }).join('');
+  });
 }
 
 function renderHighlights() {
