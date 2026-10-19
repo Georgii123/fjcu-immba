@@ -77,23 +77,75 @@ function setLanguage(lang) {
   renderGallery();
 }
 
-// Collapse / expand the menu and branding bar (language switch and Apply button stay visible)
+// Collapse / expand the header (branding + menu). Only the top bar stays when collapsed.
+// It also hides by itself when the visitor scrolls down on desktop, and comes back at the top.
 function initMenuCollapse() {
   const btn = document.getElementById('menu-collapse-btn');
-  const menu = document.getElementById('main-menu');
-  const brand = document.getElementById('brand-bar');
+  const header = document.getElementById('navbar');
+  const top = document.getElementById('site-top');
+  const actions = document.getElementById('nav-actions');
+  const slot = document.getElementById('topbar-slot');
   const label = document.getElementById('menu-collapse-label');
   const icon = document.getElementById('menu-collapse-icon');
-  if (!btn || !menu) return;
-  btn.addEventListener('click', () => {
-    const collapsed = menu.classList.toggle('hidden');
-    if (brand) brand.classList.toggle('hidden', collapsed);
-    const key = collapsed ? 'nav_expand' : 'nav_collapse';
+  if (!btn || !header || !top || !actions || !slot) return;
+
+  const desktop = window.matchMedia('(min-width: 1024px)');
+  const homeSlot = actions.parentElement;           // where language + Apply live when expanded
+  let collapsed = false;
+  let autoCollapsed = false;
+  let lastY = window.scrollY;
+  let navTarget = null;
+  let navTime = 0;
+
+  function setCollapsed(next, auto) {
+    if (next === collapsed) return;
+    const before = top.offsetHeight;
+    collapsed = next;
+    autoCollapsed = next && !!auto;
+    header.classList.toggle('is-collapsed', next);
+    (next ? slot : homeSlot).appendChild(actions);
+    const key = next ? 'nav_expand' : 'nav_collapse';
     label.setAttribute('data-i18n', key);
     label.textContent = i18n[currentLang][key];
-    icon.style.transform = collapsed ? 'rotate(180deg)' : '';
-    btn.setAttribute('aria-expanded', String(!collapsed));
+    icon.style.transform = next ? 'rotate(180deg)' : '';
+    btn.setAttribute('aria-expanded', String(!next));
+    // Keep the content where the reader is looking when the bar changes height
+    const delta = top.offsetHeight - before;
+    if (window.scrollY > 0 && delta !== 0) window.scrollBy({ top: delta, behavior: 'instant' });
+    lastY = window.scrollY;
+  }
+
+  btn.addEventListener('click', () => setCollapsed(!collapsed, false));
+
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (desktop.matches) {
+      if (!collapsed && y > lastY && y > 160) setCollapsed(true, true);
+      else if (collapsed && autoCollapsed && y <= 4) setCollapsed(false, false);
+    }
+    lastY = y;
+  }, { passive: true });
+
+  // Going to a phone/tablet width: always show the full header again
+  desktop.addEventListener('change', e => { if (!e.matches) setCollapsed(false, false); });
+
+  // After a menu click the bar may collapse mid-scroll: land exactly on the section once scrolling stops
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a || a.getAttribute('href').length < 2) return;
+    navTarget = a.getAttribute('href').slice(1);
+    navTime = Date.now();
   });
+  let settle;
+  window.addEventListener('scroll', () => {
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      if (!navTarget || Date.now() - navTime > 2500) return;
+      const el = document.getElementById(navTarget);
+      navTarget = null;
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }, 180);
+  }, { passive: true });
 }
 
 // Keep anchored sections clear of the sticky top bar + header, whatever its height is

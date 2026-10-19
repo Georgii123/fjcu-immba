@@ -86,3 +86,15 @@ body {
 section[id] {
   scroll-margin-top: calc(var(--site-top-h, 12rem) + 0.5rem);
 }
+
+/* Collapsed header (desktop): only the top bar stays; language switch + Apply move into it */
+@media (min-width: 1024px) {
+  #navbar.is-collapsed { display: none; }
+}
+#topbar-slot #nav-actions { gap: 0.5rem; margin-left: 0; }
+#topbar-slot #nav-actions a { padding: 0.25rem 0.75rem; }
+#topbar-slot #nav-actions button { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+#topbar-slot #nav-actions a { background: #800020; }
+#topbar-slot #nav-actions > div { background: #fff; }
+/* Header height changes are compensated in JS, so the browser must not also adjust */
+body { overflow-anchor: none; }
