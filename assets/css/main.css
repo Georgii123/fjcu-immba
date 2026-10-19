@@ -84,5 +84,5 @@ body {
 
 /* Keep anchored sections clear of the sticky header */
 section[id] {
-  scroll-margin-top: 11rem;
+  scroll-margin-top: calc(var(--site-top-h, 12rem) + 0.5rem);
 }

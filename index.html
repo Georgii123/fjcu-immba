@@ -27,6 +27,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-burgundy selection:text-white">
 
+  <div id="site-top" class="sticky top-0 z-40">
   <!-- ==================== TOP ANNOUNCEMENT BAR ==================== -->
   <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-slate-800">
     <div class="relative max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center lg:px-44">
@@ -44,7 +45,7 @@
   </div>
 
   <!-- ==================== MAIN HEADER / NAVIGATION ==================== -->
-  <header id="navbar" class="sticky top-0 z-40 transition-all duration-200 bg-white border-b border-slate-200">
+  <header id="navbar" class="relative transition-all duration-200 bg-white border-b border-slate-200">
     <!-- Title bar (branding) -->
     <div id="brand-bar" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between lg:justify-center h-[72px]">
@@ -81,7 +82,6 @@
             <div class="absolute left-1/2 -translate-x-1/2 top-full hidden group-hover:block group-focus-within:block z-50">
               <div class="min-w-[230px] bg-white border border-slate-200 border-t-2 border-t-burgundy shadow-lg py-1 text-center font-medium">
                 <a href="#admissions" class="block px-5 py-2.5 text-[13px] hover:bg-slate-50 hover:text-burgundy transition whitespace-nowrap" data-i18n="nav_adm_tracks">報名輔大 imMBA</a>
-                <a href="#downloads" class="block px-5 py-2.5 text-[13px] hover:bg-slate-50 hover:text-burgundy transition whitespace-nowrap" data-i18n="nav_adm_forms">表格與文件下載</a>
               </div>
             </div>
           </div>
@@ -143,6 +143,7 @@
       </div>
     </div>
   </header>
+  </div>
 
 
   <!-- ==================== HERO ==================== -->
@@ -209,23 +210,19 @@
   </section>
 
 
-  <!-- ==================== LATEST NEWS & INSIGHTS ==================== -->
-  <section id="news" class="py-20 bg-white border-b border-slate-200">
+  <!-- ==================== AUTHENTIC FJCU GALLERY ==================== -->
+  <section id="gallery" class="py-20 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="max-w-3xl mb-12">
-        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">News & Updates</div>
-        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_news_title">最新公告</h2>
-        <p class="text-slate-500 text-xs mt-1" data-i18n="sec_news_subtitle">即時掌握最新招生時程、新開課程與國際合作夥伴動態。</p>
+      <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono">Campus Experience</div>
+          <h2 class="font-serif text-2xl font-bold text-slate-900">imMBA 校園活動與國際交流照片</h2>
+        </div>
       </div>
 
-      <!-- Announcement cards -->
-      <div id="announcements-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="gallery-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Rendered dynamically by app.js -->
       </div>
-
-      <!-- Source reference -->
-      <p id="news-source" class="mt-10 pt-4 border-t border-slate-200 text-[11px] text-slate-500"></p>
     </div>
   </section>
 
@@ -363,23 +360,6 @@
   </section>
 
 
-  <!-- ==================== AUTHENTIC FJCU GALLERY ==================== -->
-  <section id="gallery" class="py-20 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
-        <div>
-          <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono">Campus Experience</div>
-          <h2 class="font-serif text-2xl font-bold text-slate-900">imMBA 校園活動與國際交流照片</h2>
-        </div>
-      </div>
-
-      <div id="gallery-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Rendered dynamically by app.js -->
-      </div>
-    </div>
-  </section>
-
-
   <section id="highlights" class="py-20 bg-slate-50 border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-wrap items-end justify-between gap-4 mb-12">
@@ -393,6 +373,27 @@
       <div id="highlights-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Rendered dynamically by app.js -->
       </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== LATEST NEWS & INSIGHTS ==================== -->
+  <section id="news" class="py-20 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <div class="max-w-3xl mb-12">
+        <div class="text-xs font-bold uppercase tracking-widest text-burgundy mb-1 font-mono">News & Updates</div>
+        <h2 class="font-serif text-3xl font-bold text-slate-900" data-i18n="sec_news_title">最新公告</h2>
+        <p class="text-slate-500 text-xs mt-1" data-i18n="sec_news_subtitle">即時掌握最新招生時程、新開課程與國際合作夥伴動態。</p>
+      </div>
+
+      <!-- Announcement cards -->
+      <div id="announcements-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Source reference -->
+      <p id="news-source" class="mt-10 pt-4 border-t border-slate-200 text-[11px] text-slate-500"></p>
     </div>
   </section>
 

@@ -9,6 +9,7 @@ let activeCategory = 'all';
 document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initMenuCollapse();
+  initStickyOffset();
   initStats();
   renderAnnouncements();
   renderFeatures();
@@ -93,6 +94,16 @@ function initMenuCollapse() {
     icon.style.transform = collapsed ? 'rotate(180deg)' : '';
     btn.setAttribute('aria-expanded', String(!collapsed));
   });
+}
+
+// Keep anchored sections clear of the sticky top bar + header, whatever its height is
+function initStickyOffset() {
+  const top = document.getElementById('site-top');
+  if (!top) return;
+  const apply = () => document.documentElement.style.setProperty('--site-top-h', top.offsetHeight + 'px');
+  apply();
+  if (window.ResizeObserver) new ResizeObserver(apply).observe(top);
+  window.addEventListener('resize', apply);
 }
 
 function initLanguage() {
