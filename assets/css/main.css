@@ -88,8 +88,25 @@ section[id] {
 }
 
 /* Collapsed header (desktop): only the top bar stays; language switch + Apply move into it */
+#top-spacer { height: var(--topbar-h, 43px); }
+/* The hero starts under the header, so the header can slide away without moving the page */
+#hero > div { padding-top: calc(var(--hdr-h, 0px) + 6rem); }
+@media (min-width: 768px) {
+  #hero > div { padding-top: calc(var(--hdr-h, 0px) + 9rem); }
+}
 @media (min-width: 1024px) {
-  #navbar.is-collapsed { display: none; }
+  #navbar {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0s;
+  }
+  #navbar.is-collapsed {
+    transform: translateY(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #navbar, #navbar.is-collapsed { transition: none; }
 }
 #topbar-slot #nav-actions { gap: 0.5rem; margin-left: 0; }
 #topbar-slot #nav-actions a { padding: 0.25rem 0.75rem; }

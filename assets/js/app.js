@@ -9,7 +9,7 @@ let activeCategory = 'all';
 document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initMenuCollapse();
-  initStickyOffset();
+  initNewsToggle();
   initComingSoonLinks();
   initStats();
   renderAnnouncements();
@@ -79,29 +79,42 @@ function setLanguage(lang) {
   if (window.__markComingSoon) window.__markComingSoon();
 }
 
-// Collapse / expand the header (branding + menu). Only the top bar stays when collapsed.
-// It also hides by itself when the visitor scrolls down on desktop, and comes back at the top.
+// Header: slides away smoothly when the visitor scrolls down and slides back at the top.
+// The "Collapse / Expand main menu" button works by hand. Expanding by hand pins the menu open.
 function initMenuCollapse() {
   const btn = document.getElementById('menu-collapse-btn');
   const header = document.getElementById('navbar');
-  const top = document.getElementById('site-top');
+  const topbar = document.getElementById('topbar');
   const actions = document.getElementById('nav-actions');
   const slot = document.getElementById('topbar-slot');
   const label = document.getElementById('menu-collapse-label');
   const icon = document.getElementById('menu-collapse-icon');
-  if (!btn || !header || !top || !actions || !slot) return;
+  if (!btn || !header || !topbar || !actions || !slot) return;
 
+  const root = document.documentElement;
   const desktop = window.matchMedia('(min-width: 1024px)');
   const homeSlot = actions.parentElement;           // where language + Apply live when expanded
   let collapsed = false;
-  let autoCollapsed = false;
+  let autoCollapsed = false;     // collapsed by scrolling (comes back at the top)
+  let pinned = false;            // expanded by hand: stays open however far the visitor scrolls
   let lastY = window.scrollY;
   let navTarget = null;
   let navTime = 0;
 
+  // Heights used by the page layout and by anchor links
+  function layout(visibleHeader) {
+    const tb = topbar.offsetHeight;
+    const hh = header.offsetHeight;
+    const show = visibleHeader === undefined ? !(collapsed && desktop.matches) : visibleHeader;
+    root.style.setProperty('--topbar-h', tb + 'px');
+    // The header gets shorter when language + Apply move to the top bar, so only measure it
+    // while it is open. Otherwise the hero text would jump up when the header slides away.
+    if (!(collapsed && desktop.matches)) root.style.setProperty('--hdr-h', hh + 'px');
+    root.style.setProperty('--site-top-h', (tb + (show ? hh : 0)) + 'px');
+  }
+
   function setCollapsed(next, auto) {
     if (next === collapsed) return;
-    const before = top.offsetHeight;
     collapsed = next;
     autoCollapsed = next && !!auto;
     header.classList.toggle('is-collapsed', next);
@@ -111,33 +124,42 @@ function initMenuCollapse() {
     label.textContent = i18n[currentLang][key];
     icon.style.transform = next ? 'rotate(180deg)' : '';
     btn.setAttribute('aria-expanded', String(!next));
-    // Keep the content where the reader is looking when the bar changes height
-    const delta = top.offsetHeight - before;
-    if (window.scrollY > 0 && delta !== 0) window.scrollBy({ top: delta, behavior: 'instant' });
-    lastY = window.scrollY;
+    layout();
   }
 
-  btn.addEventListener('click', () => setCollapsed(!collapsed, false));
+  btn.addEventListener('click', () => {
+    if (collapsed) { pinned = true; setCollapsed(false, false); }   // by hand: keep it open
+    else { pinned = false; setCollapsed(true, false); }
+  });
 
   window.addEventListener('scroll', () => {
     const y = window.scrollY;
     if (desktop.matches) {
-      if (!collapsed && y > lastY && y > 160) setCollapsed(true, true);
+      if (!collapsed && !pinned && y > lastY && y > 160) setCollapsed(true, true);
       else if (collapsed && autoCollapsed && y <= 4) setCollapsed(false, false);
     }
     lastY = y;
   }, { passive: true });
 
   // Going to a phone/tablet width: always show the full header again
-  desktop.addEventListener('change', e => { if (!e.matches) setCollapsed(false, false); });
+  desktop.addEventListener('change', e => { if (!e.matches) setCollapsed(false, false); layout(); });
 
-  // After a menu click the bar may collapse mid-scroll: land exactly on the section once scrolling stops
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => layout()); ro.observe(topbar); ro.observe(header); }
+  window.addEventListener('resize', () => layout());
+  layout();
+
+  // Menu click: work out where the header will be when the scroll ends, so the section lands exactly
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href^="#"]');
     if (!a || a.getAttribute('href').length < 2) return;
-    navTarget = a.getAttribute('href').slice(1);
+    const el = document.getElementById(a.getAttribute('href').slice(1));
+    if (!el) return;
+    navTarget = el.id;
     navTime = Date.now();
+    const goingDown = el.getBoundingClientRect().top + window.scrollY > window.scrollY;
+    layout(!(desktop.matches && !pinned && (collapsed || goingDown)));
   });
+
   let settle;
   window.addEventListener('scroll', () => {
     clearTimeout(settle);
@@ -145,19 +167,10 @@ function initMenuCollapse() {
       if (!navTarget || Date.now() - navTime > 2500) return;
       const el = document.getElementById(navTarget);
       navTarget = null;
+      layout();
       if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
-    }, 180);
+    }, 220);
   }, { passive: true });
-}
-
-// Keep anchored sections clear of the sticky top bar + header, whatever its height is
-function initStickyOffset() {
-  const top = document.getElementById('site-top');
-  if (!top) return;
-  const apply = () => document.documentElement.style.setProperty('--site-top-h', top.offsetHeight + 'px');
-  apply();
-  if (window.ResizeObserver) new ResizeObserver(apply).observe(top);
-  window.addEventListener('resize', apply);
 }
 
 // Menu names stay visible for pages that are not built yet; clicking them does nothing
@@ -176,6 +189,16 @@ function initComingSoonLinks() {
     const a = e.target.closest('a[href^="#"]');
     if (a && dead(a)) e.preventDefault();
   }, true);
+}
+
+function initNewsToggle() {
+  const toggle = document.getElementById('news-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    newsExpanded = !newsExpanded;
+    renderAnnouncements();
+    if (!newsExpanded) document.getElementById('news').scrollIntoView({ block: 'start' });
+  });
 }
 
 function initLanguage() {
@@ -213,12 +236,25 @@ function escapeHtml(str) {
   return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+const NEWS_PREVIEW_COUNT = 3;
+let newsExpanded = false;
+
 function renderAnnouncements() {
   const container = document.getElementById('announcements-list');
   if (!container) return;
 
   const other = currentLang === 'zh' ? 'en' : 'zh';
-  const items = NewsStore.published();
+  const all = NewsStore.published();
+  const items = newsExpanded ? all : all.slice(0, NEWS_PREVIEW_COUNT);
+
+  const toggle = document.getElementById('news-toggle');
+  if (toggle) {
+    toggle.classList.toggle('hidden', all.length <= NEWS_PREVIEW_COUNT);
+    toggle.setAttribute('aria-expanded', String(newsExpanded));
+    toggle.textContent = newsExpanded
+      ? (currentLang === 'zh' ? '收合公告' : 'Show fewer')
+      : (currentLang === 'zh' ? `查看全部公告（${all.length}）` : `See all announcements (${all.length})`);
+  }
 
   if (!items.length) {
     container.innerHTML = `<p class="text-sm text-slate-500 col-span-full">${currentLang === 'zh' ? '目前沒有公告。' : 'No announcements yet.'}</p>`;
