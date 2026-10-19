@@ -143,12 +143,26 @@
   });
 
   // ---------------------------------------------------------------- editor (Create / Update)
-  function setAutoBadges(zh, en) {
-    $('auto-zh').classList.toggle('hidden', !zh);
-    $('auto-en').classList.toggle('hidden', !en);
-    $('auto-zh').dataset.on = zh ? '1' : '';
-    $('auto-en').dataset.on = en ? '1' : '';
+  // Fields that were filled by the translator and not edited by a person yet
+  const autoFields = new Set();
+  const FIELDS = { zh: ['f-title-zh', 'f-content-zh'], en: ['f-title-en', 'f-content-en'] };
+
+  function refreshBadges() {
+    ['zh', 'en'].forEach(l => {
+      const on = FIELDS[l].some(id => autoFields.has(id));
+      $('auto-' + l).classList.toggle('hidden', !on);
+      $('auto-' + l).dataset.on = on ? '1' : '';
+    });
   }
+
+  function setAutoBadges(zh, en) {   // used when opening a record: flag a whole language
+    autoFields.clear();
+    if (zh) FIELDS.zh.forEach(id => autoFields.add(id));
+    if (en) FIELDS.en.forEach(id => autoFields.add(id));
+    refreshBadges();
+  }
+
+  function markAuto(id) { autoFields.add(id); refreshBadges(); }
 
   function openEditor(rec) {
     editingId = rec ? rec.id : null;
@@ -178,12 +192,9 @@
 
   function closeEditor() { $('editor').classList.add('hidden'); editingId = null; }
 
-  // Typing in a language by hand means a person has reviewed it.
-  [['f-title-zh', 'zh'], ['f-content-zh', 'zh'], ['f-title-en', 'en'], ['f-content-en', 'en']].forEach(([id, lang]) => {
-    $(id).addEventListener('input', () => {
-      if (lang === 'zh') setAutoBadges(false, $('auto-en').dataset.on === '1');
-      else setAutoBadges($('auto-zh').dataset.on === '1', false);
-    });
+  // Typing in a field by hand means a person has reviewed that field.
+  [...FIELDS.zh, ...FIELDS.en].forEach(id => {
+    $(id).addEventListener('input', () => { autoFields.delete(id); refreshBadges(); });
   });
 
   function readForm(status) {
@@ -242,9 +253,8 @@
       const needT = !(onlyMissing && $(`f-title-${to}`).value.trim());
       const needC = !(onlyMissing && $(`f-content-${to}`).value.trim());
       const [t, c] = await Promise.all([needT ? translate(srcT, pair, target) : '', needC ? translate(srcC, pair, target) : '']);
-      if (t) $(`f-title-${to}`).value = t;
-      if (c) $(`f-content-${to}`).value = c;
-      if (t || c) setAutoBadges(to === 'zh' ? true : $('auto-zh').dataset.on === '1', to === 'en' ? true : $('auto-en').dataset.on === '1');
+      if (t) { $(`f-title-${to}`).value = t; markAuto(`f-title-${to}`); }
+      if (c) { $(`f-content-${to}`).value = c; markAuto(`f-content-${to}`); }
       flash('Translated. Please read the result and edit it if needed.');
       return true;
     } catch (e) {
@@ -255,6 +265,31 @@
 
   $('btn-tr-zh-en').addEventListener('click', () => runTranslate('zh-en', false));
   $('btn-tr-en-zh').addEventListener('click', () => runTranslate('en-zh', false));
+
+  // Default = automatic: when you finish typing in one language and the same field in the
+  // other language is still empty, it is translated for you (you can edit it afterwards).
+  const AUTO_PAIRS = [
+    ['f-title-zh', 'f-title-en', 'zh-TW', 'en', 'en'],
+    ['f-content-zh', 'f-content-en', 'zh-TW', 'en', 'en'],
+    ['f-title-en', 'f-title-zh', 'en', 'zh-TW', 'zh'],
+    ['f-content-en', 'f-content-zh', 'en', 'zh-TW', 'zh']
+  ];
+  AUTO_PAIRS.forEach(([src, dst, from, to, lang]) => {
+    $(src).addEventListener('change', async () => {
+      const text = $(src).value.trim();
+      if (!text || $(dst).value.trim() || $(dst).dataset.busy) return;
+      $(dst).dataset.busy = '1';
+      $(dst).placeholder = 'Translating...';
+      try {
+        const out = await translate(text, from, to);
+        if (out && !$(dst).value.trim()) {
+          $(dst).value = out;
+          markAuto(dst);
+        }
+      } catch (e) { /* the manual buttons and Preview will report the problem */ }
+      finally { delete $(dst).dataset.busy; $(dst).placeholder = ''; }
+    });
+  });
 
   // Create: "add the Chinese and English versions together". If one side is missing
   // (or only half filled), translate the missing fields from the other side.

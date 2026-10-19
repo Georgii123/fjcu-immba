@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initMenuCollapse();
   initStickyOffset();
+  initComingSoonLinks();
   initStats();
   renderAnnouncements();
   renderFeatures();
@@ -75,6 +76,7 @@ function setLanguage(lang) {
   renderHighlights();
   renderInfoSections();
   renderGallery();
+  if (window.__markComingSoon) window.__markComingSoon();
 }
 
 // Collapse / expand the header (branding + menu). Only the top bar stays when collapsed.
@@ -156,6 +158,24 @@ function initStickyOffset() {
   apply();
   if (window.ResizeObserver) new ResizeObserver(apply).observe(top);
   window.addEventListener('resize', apply);
+}
+
+// Menu names stay visible for pages that are not built yet; clicking them does nothing
+function initComingSoonLinks() {
+  const dead = a => {
+    const h = a.getAttribute('href') || '';
+    return h.length > 1 && h.startsWith('#') && !document.getElementById(h.slice(1));
+  };
+  const label = () => (currentLang === 'zh' ? '即將推出' : 'Coming soon');
+  const mark = () => document.querySelectorAll('#site-top a[href^="#"]').forEach(a => {
+    if (dead(a)) { a.setAttribute('title', label()); a.setAttribute('aria-disabled', 'true'); a.classList.add('cursor-default'); }
+  });
+  mark();
+  window.__markComingSoon = mark;
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (a && dead(a)) e.preventDefault();
+  }, true);
 }
 
 function initLanguage() {
