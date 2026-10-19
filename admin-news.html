@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AdminNews | imMBA Back-Office</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">imMBA Back-Office</div>
+          <h1 class="font-serif text-lg font-bold leading-tight truncate">AdminNews</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 text-xs font-bold">
+        <a href="index.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">&larr; Back to website</a>
+        <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- ==================== PASSWORD GATE ==================== -->
+    <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
+      <h2 id="auth-title" class="font-serif text-2xl font-bold mb-2"></h2>
+      <p id="auth-help" class="text-sm text-slate-600 mb-6"></p>
+      <form id="auth-form" class="space-y-4" autocomplete="off">
+        <div>
+          <label for="auth-pw" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+          <input id="auth-pw" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="current-password">
+        </div>
+        <div id="auth-confirm-wrap" class="hidden">
+          <label for="auth-pw2" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Confirm password</label>
+          <input id="auth-pw2" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="new-password">
+        </div>
+        <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
+        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition"></button>
+      </form>
+      <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
+        This password is saved only in this browser. It is a simple door lock for the classroom demo, not strong security.
+        If you forget it, clear this site's data in your browser to start over.
+      </p>
+    </section>
+
+    <!-- ==================== ADMIN APP ==================== -->
+    <div id="app" class="hidden">
+
+      <!-- Toolbar -->
+      <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1">Manage announcements</div>
+          <h2 class="font-serif text-3xl font-bold">Announcements</h2>
+          <p class="text-sm text-slate-600 mt-1">Each announcement is one record with a Chinese and an English version. <span id="count-summary"></span></p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <button id="btn-new" type="button" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white uppercase tracking-wider transition">+ New announcement</button>
+          <button id="btn-reset" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Restore original data</button>
+        </div>
+      </div>
+
+      <p id="status-msg" class="mb-4 text-sm font-semibold hidden" role="status" aria-live="polite"></p>
+
+      <!-- Editor -->
+      <section id="editor" class="hidden mb-10 bg-white border-2 border-burgundy p-6 sm:p-8" aria-labelledby="editor-title">
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div id="editor-mode" class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1"></div>
+            <h3 id="editor-title" class="font-serif text-2xl font-bold">Announcement</h3>
+          </div>
+          <button id="btn-editor-close" type="button" class="text-slate-400 hover:text-slate-800 text-2xl leading-none px-2" aria-label="Close editor">&times;</button>
+        </div>
+
+        <form id="editor-form" novalidate>
+          <input type="hidden" id="f-id">
+
+          <!-- Shared fields -->
+          <fieldset class="mb-8">
+            <legend class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Shared fields (same for both languages)</legend>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label for="f-date" class="block text-xs font-bold text-slate-600 mb-1">Date</label>
+                <input id="f-date" type="date" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div class="lg:col-span-2">
+                <label for="f-url" class="block text-xs font-bold text-slate-600 mb-1">Link URL ("View Details")</label>
+                <input id="f-url" type="url" placeholder="https://..." class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div>
+                <label for="f-order" class="block text-xs font-bold text-slate-600 mb-1">Display order (1 = first)</label>
+                <input id="f-order" type="number" step="1" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div>
+                <label for="f-status" class="block text-xs font-bold text-slate-600 mb-1">Status</label>
+                <select id="f-status" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy">
+                  <option value="published">Published (shown on website)</option>
+                  <option value="draft">Draft (hidden)</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <label class="flex items-center gap-2 text-sm font-semibold text-slate-700 py-2">
+                  <input id="f-pinned" type="checkbox" class="w-4 h-4 accent-[#800020]"> Pinned (shows a "Pinned" tag)
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Bilingual fields -->
+          <fieldset class="mb-4">
+            <legend class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">Bilingual fields</legend>
+            <div class="grid lg:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm">中文 (Chinese)</h4>
+                  <span id="auto-zh" class="hidden text-[11px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800">Auto-translated: please review</span>
+                </div>
+                <div>
+                  <label for="f-title-zh" class="block text-xs font-bold text-slate-600 mb-1">Chinese title</label>
+                  <input id="f-title-zh" type="text" lang="zh-TW" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+                </div>
+                <div>
+                  <label for="f-content-zh" class="block text-xs font-bold text-slate-600 mb-1">Chinese content</label>
+                  <textarea id="f-content-zh" rows="7" lang="zh-TW" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy"></textarea>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="font-bold text-sm">English</h4>
+                  <span id="auto-en" class="hidden text-[11px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800">Auto-translated: please review</span>
+                </div>
+                <div>
+                  <label for="f-title-en" class="block text-xs font-bold text-slate-600 mb-1">English title</label>
+                  <input id="f-title-en" type="text" lang="en" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+                </div>
+                <div>
+                  <label for="f-content-en" class="block text-xs font-bold text-slate-600 mb-1">English content</label>
+                  <textarea id="f-content-en" rows="7" lang="en" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mt-4 text-xs font-bold">
+              <button type="button" id="btn-tr-zh-en" class="px-3 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Translate 中文 &rarr; English</button>
+              <button type="button" id="btn-tr-en-zh" class="px-3 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Translate English &rarr; 中文</button>
+              <span class="text-[11px] text-slate-500 font-normal self-center">Translation is sent to a free online service (MyMemory). Always check the result, then edit it if needed.</span>
+            </div>
+          </fieldset>
+
+          <p id="editor-error" class="text-sm text-red-700 mb-4 hidden" role="alert"></p>
+
+          <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200 text-xs font-bold">
+            <button type="button" id="btn-preview" class="px-5 py-2.5 border border-slate-900 hover:bg-slate-900 hover:text-white transition uppercase tracking-wider">Preview</button>
+            <button type="button" id="btn-save-draft" class="px-5 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition uppercase tracking-wider">Save as draft</button>
+            <button type="button" id="btn-publish" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white transition uppercase tracking-wider">Preview &amp; publish</button>
+            <button type="button" id="btn-cancel" class="px-5 py-2.5 text-slate-500 hover:text-slate-900 transition uppercase tracking-wider">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- List -->
+      <section aria-label="Announcement list" class="bg-white border border-slate-200 overflow-x-auto">
+        <table class="w-full text-left text-sm min-w-[860px]">
+          <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+            <tr>
+              <th class="px-3 py-3 w-12">Order</th>
+              <th class="px-3 py-3 w-28">Date</th>
+              <th class="px-3 py-3 w-24">Status</th>
+              <th class="px-3 py-3">Chinese title</th>
+              <th class="px-3 py-3">English title</th>
+              <th class="px-3 py-3 w-28">Languages</th>
+              <th class="px-3 py-3 w-56">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="news-rows" class="divide-y divide-slate-100"></tbody>
+        </table>
+        <p id="empty-msg" class="hidden p-8 text-center text-sm text-slate-500">No announcements yet. Click "New announcement" to add one.</p>
+      </section>
+
+      <p class="text-[11px] text-slate-500 mt-4 leading-relaxed">
+        Changes are saved in this browser only and appear on the website in the same browser.
+      </p>
+    </div>
+  </main>
+
+  <!-- ==================== PREVIEW MODAL ==================== -->
+  <div id="modal-preview" class="fixed inset-0 z-50 hidden bg-slate-950/70 flex items-start sm:items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+    <div class="bg-white w-full max-w-4xl my-6 p-6 sm:p-8">
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <h3 id="preview-title" class="font-serif text-2xl font-bold">Preview</h3>
+        <button id="btn-preview-x" type="button" class="text-slate-400 hover:text-slate-800 text-2xl leading-none px-2" aria-label="Close preview">&times;</button>
+      </div>
+      <div id="preview-sync" class="mb-5 text-sm"></div>
+      <div class="grid md:grid-cols-2 gap-6" id="preview-cards"></div>
+      <div class="flex flex-wrap justify-end gap-3 mt-8 text-xs font-bold">
+        <button id="btn-preview-close" type="button" class="px-5 py-2.5 border border-slate-300 hover:border-slate-900 transition uppercase tracking-wider">Back to editing</button>
+        <button id="btn-preview-confirm" type="button" class="hidden px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white transition uppercase tracking-wider">Confirm &amp; publish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRM MODAL ==================== -->
+  <div id="modal-confirm" class="fixed inset-0 z-50 hidden bg-slate-950/70 flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="bg-white w-full max-w-md p-6">
+      <h3 id="confirm-title" class="font-serif text-xl font-bold mb-2">Are you sure?</h3>
+      <p id="confirm-text" class="text-sm text-slate-600 mb-6"></p>
+      <div class="flex justify-end gap-3 text-xs font-bold">
+        <button id="btn-confirm-no" type="button" class="px-5 py-2.5 border border-slate-300 hover:border-slate-900 transition uppercase tracking-wider">Cancel</button>
+        <button id="btn-confirm-yes" type="button" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white transition uppercase tracking-wider">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/news-seed.js"></script>
+  <script src="assets/js/news-store.js"></script>
+  <script src="assets/js/admin-news.js"></script>
+</body>
+</html>

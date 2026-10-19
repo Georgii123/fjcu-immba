@@ -81,3 +81,8 @@ body {
 .animate-modal {
   animation: modalFadeIn 0.2s ease-out forwards;
 }
+
+/* Keep anchored sections clear of the sticky header */
+section[id] {
+  scroll-margin-top: 11rem;
+}
