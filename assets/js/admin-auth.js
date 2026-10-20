@@ -21,7 +21,7 @@ const AdminAuth = (() => {
   const TEXT = {
     login:    { title: 'Admin login',            help: () => `Sign in with your admin email and password to manage ${area}.`, submit: 'Log in' },
     register: { title: 'Register',               help: () => 'Only approved emails can register. Choose a password (at least 6 characters). You will get an email to confirm the address.', submit: 'Create account' },
-    forgot:   { title: 'Forgot your password?',  help: () => 'Enter your email and we will send you a link to choose a new password.', submit: 'Send reset link' },
+    forgot:   { title: 'Forgot password',  help: () => 'Enter your email and we will send you a link to choose a new password.', submit: 'Send reset link' },
     reset:    { title: 'Choose a new password',  help: () => 'Type the new password twice, then save it.', submit: 'Save new password' }
   };
 
@@ -40,7 +40,7 @@ const AdminAuth = (() => {
         <p id="auth-info" class="text-sm text-green-800 hidden" role="status"></p>
         <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition"></button>
       </form>
-      <p class="text-sm text-slate-600 mt-5 flex flex-wrap gap-x-5 gap-y-2" id="auth-links"></p>
+      <p class="text-sm text-slate-600 mt-5 flex flex-wrap justify-center gap-x-8 gap-y-2" id="auth-links"></p>
       <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
         Only authorised people can use the back office. New accounts are accepted only for approved emails.
       </p>`;
@@ -64,7 +64,7 @@ const AdminAuth = (() => {
     $('auth-pw').setAttribute('autocomplete', next === 'login' ? 'current-password' : 'new-password');
     const btn = (m, label) => `<button type="button" data-mode="${m}" class="${LINK}">${label}</button>`;
     $('auth-links').innerHTML =
-      next === 'login' ? btn('forgot', 'Forgot password?') + btn('register', 'Register')
+      next === 'login' ? btn('register', 'Register') + btn('forgot', 'Forgot password')
       : next === 'reset' ? ''
       : btn('login', 'Back to log in');
     if (!keepMessages) { $('auth-error').classList.add('hidden'); $('auth-info').classList.add('hidden'); }
@@ -108,7 +108,7 @@ const AdminAuth = (() => {
         if (error) throw error;
         if (data && data.session) return onSession(data.session);
         if (data && data.user && data.user.identities && data.user.identities.length === 0) {
-          setMode('login'); return showInfo('This email already has an account. Log in, or use "Forgot password?".');
+          setMode('login'); return showInfo('This email already has an account. Log in, or use "Forgot password".');
         }
         setMode('login');
         showInfo('Account created. Open the confirmation email we just sent, click the link, then come back here and log in.');
