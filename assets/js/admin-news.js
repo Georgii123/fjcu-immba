@@ -1,89 +1,148 @@
 /**
  * AdminNews back-office: create, read/preview, update and delete bilingual announcements.
- * Data is read and written through NewsStore (assets/js/news-store.js).
+ * Data lives in the Supabase table `announcements`; signing in uses Supabase Auth.
+ * Only the admin email listed in the database may change anything (row-level security).
  */
 (() => {
-  const PW_KEY = 'immba_admin_pw_v1';
-  const SESSION_KEY = 'immba_admin_session';
-
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cfg = window.SUPABASE_CONFIG;
 
-  // ---------------------------------------------------------------- password gate
-  async function sha256(text) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function store(kind, key, val) {
-    try {
-      const s = kind === 'local' ? localStorage : sessionStorage;
-      if (val === undefined) return s.getItem(key);
-      if (val === null) s.removeItem(key); else s.setItem(key, val);
-    } catch (e) { /* storage blocked */ }
-    return null;
-  }
-
-  function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
-
-  function initAuth() {
-    const hasPw = !!store('local', PW_KEY);
-    if (hasPw && store('session', SESSION_KEY) === '1') return showApp();
-
-    $('auth').classList.remove('hidden');
-    $('auth-title').textContent = hasPw ? 'Admin login' : 'Create an admin password';
-    $('auth-help').textContent = hasPw
-      ? 'Enter the password to manage announcements.'
-      : 'First time here. Choose a password (at least 6 characters). You will use it to open this page.';
-    $('auth-submit').textContent = hasPw ? 'Log in' : 'Save password and continue';
-    $('auth-confirm-wrap').classList.toggle('hidden', hasPw);
-    $('auth-pw').setAttribute('autocomplete', hasPw ? 'current-password' : 'new-password');
-
-    $('auth-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const err = $('auth-error'); err.classList.add('hidden');
-      const pw = $('auth-pw').value;
-      if (!window.crypto || !crypto.subtle) return showError(err, 'This browser cannot secure a password here. Open the site over https.');
-      if (hasPw) {
-        if ((await sha256(pw)) !== store('local', PW_KEY)) return showError(err, 'Wrong password.');
-      } else {
-        if (pw.length < 6) return showError(err, 'Use at least 6 characters.');
-        if (pw !== $('auth-pw2').value) return showError(err, 'The two passwords do not match.');
-        store('local', PW_KEY, await sha256(pw));
-      }
-      store('session', SESSION_KEY, '1');
-      $('auth').classList.add('hidden');
-      showApp();
-    });
-  }
-
-  function showApp() {
-    $('app').classList.remove('hidden');
-    $('btn-logout').classList.remove('hidden');
-    refresh();
-  }
-
-  $('btn-logout').addEventListener('click', () => { store('session', SESSION_KEY, null); location.reload(); });
-
-  // ---------------------------------------------------------------- data helpers
+  let sb = null;                  // Supabase client
   let records = [];
   let editingId = null;           // null = creating a new record
   let confirmAction = null;
+  let authMode = 'login';         // 'login' | 'signup'
 
-  function load() { records = NewsStore.all().sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)); }
-
-  function persist(list) {
-    if (!NewsStore.save(list)) { flash('Could not save: browser storage is blocked or full.', true); return false; }
-    return true;
-  }
+  function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 
   function flash(msg, isError) {
     const el = $('status-msg');
     el.textContent = msg;
     el.className = 'mb-4 text-sm font-semibold ' + (isError ? 'text-red-700' : 'text-green-700');
     clearTimeout(flash._t);
-    flash._t = setTimeout(() => el.classList.add('hidden'), 5000);
+    flash._t = setTimeout(() => el.classList.add('hidden'), isError ? 9000 : 5000);
   }
+
+  function errText(e) {
+    const msg = (e && (e.message || e.error_description)) || String(e);
+    if ((e && e.code === '42501') || /row-level security|permission denied|not allowed/i.test(msg)) {
+      return 'Not allowed: only the admin account can change announcements. Check that you signed in with the admin email.';
+    }
+    if (/Failed to fetch|NetworkError|network/i.test(msg)) return 'Cannot reach the database. Check your internet connection and try again.';
+    return msg;
+  }
+
+  // ---------------------------------------------------------------- database (Supabase)
+  const toRow = r => ({
+    id: r.id, date: r.date, pinned: !!r.pinned, order: Number(r.order) || 0, status: r.status, url: r.url,
+    title_zh: r.title_zh, title_en: r.title_en, content_zh: r.content_zh, content_en: r.content_en,
+    auto_zh: !!r.auto_zh, auto_en: !!r.auto_en, updated_at: new Date().toISOString()
+  });
+
+  const Api = {
+    async list() {
+      const { data, error } = await sb.from('announcements').select('*').order('order', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    // one record = both languages, written (or replaced) as a whole
+    async save(rows) {
+      const list = Array.isArray(rows) ? rows : [rows];
+      const { data, error } = await sb.from('announcements').upsert(list.map(toRow)).select();
+      if (error) throw error;
+      if (!data || data.length !== list.length) throw new Error('Not allowed: the database did not accept the change.');
+    },
+    // deleting the row removes the Chinese and the English version together
+    async remove(id) {
+      const { data, error } = await sb.from('announcements').delete().eq('id', id).select();
+      if (error) throw error;
+      if (!data || !data.length) throw new Error('Not allowed: the database did not delete the announcement.');
+    }
+  };
+
+  // ---------------------------------------------------------------- login (Supabase Auth)
+  function setAuthMode(mode) {
+    authMode = mode;
+    const signup = mode === 'signup';
+    $('auth-title').textContent = signup ? 'Create the admin account' : 'Admin login';
+    $('auth-help').textContent = signup
+      ? 'Use the admin email. Choose a password (at least 6 characters). You will get an email to confirm the address.'
+      : 'Sign in with the admin email and password to manage announcements.';
+    $('auth-submit').textContent = signup ? 'Create account' : 'Log in';
+    $('auth-confirm-wrap').classList.toggle('hidden', !signup);
+    $('auth-pw').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+    $('auth-toggle').textContent = signup ? 'I already have an account: log in' : 'Create the admin account';
+    $('auth-toggle-note').classList.toggle('hidden', signup);
+    $('auth-error').classList.add('hidden');
+    $('auth-info').classList.add('hidden');
+  }
+
+  function showAuthProblem(msg) {
+    $('auth').classList.remove('hidden');
+    showError($('auth-error'), msg);
+    $('auth-submit').disabled = true;
+    $('auth-toggle').disabled = true;
+  }
+
+  async function initAuth() {
+    if (!cfg || !cfg.url || !cfg.key) return showAuthProblem('Supabase is not configured (assets/js/supabase-config.js).');
+    if (!window.supabase || !window.supabase.createClient) return showAuthProblem('Could not load the Supabase library. Check your internet connection and reload.');
+    sb = window.supabase.createClient(cfg.url, cfg.key);
+
+    $('auth-toggle').addEventListener('click', () => setAuthMode(authMode === 'login' ? 'signup' : 'login'));
+    $('auth-form').addEventListener('submit', onAuthSubmit);
+
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) return enterApp(data.session);
+    $('auth').classList.remove('hidden');
+    setAuthMode('login');
+  }
+
+  async function onAuthSubmit(e) {
+    e.preventDefault();
+    const err = $('auth-error'), info = $('auth-info');
+    err.classList.add('hidden'); info.classList.add('hidden');
+    const email = $('auth-email').value.trim();
+    const pw = $('auth-pw').value;
+    if (!/^\S+@\S+\.\S+$/.test(email)) return showError(err, 'Enter a valid email address.');
+    if (!pw) return showError(err, 'Enter your password.');
+    const btn = $('auth-submit'); btn.disabled = true;
+    try {
+      if (authMode === 'signup') {
+        if (pw.length < 6) throw new Error('Use at least 6 characters.');
+        if (pw !== $('auth-pw2').value) throw new Error('The two passwords do not match.');
+        const { data, error } = await sb.auth.signUp({ email, password: pw });
+        if (error) throw error;
+        if (data && data.session) return enterApp(data.session);
+        info.textContent = 'Account created. Open the confirmation email we just sent, click the link, then come back here and log in.';
+        info.classList.remove('hidden');
+        setAuthMode('login');
+        info.classList.remove('hidden');
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+        if (error) throw error;
+        await enterApp(data.session);
+      }
+    } catch (ex) {
+      showError(err, /Invalid login credentials/i.test(ex.message) ? 'Wrong email or password (or the email is not confirmed yet).' : errText(ex));
+    } finally { btn.disabled = false; }
+  }
+
+  async function enterApp(session) {
+    $('auth').classList.add('hidden');
+    $('app').classList.remove('hidden');
+    $('btn-logout').classList.remove('hidden');
+    const who = $('user-email');
+    who.textContent = (session && session.user && session.user.email) || '';
+    who.classList.toggle('hidden', !who.textContent);
+    await refresh();
+  }
+
+  $('btn-logout').addEventListener('click', async () => {
+    try { if (sb) await sb.auth.signOut(); } catch (e) { /* ignore */ }
+    location.reload();
+  });
 
   // Compare the two language versions of one record.
   function syncReport(r) {
@@ -101,8 +160,9 @@
   }
 
   // ---------------------------------------------------------------- list (Read)
-  function refresh() {
-    load();
+  async function refresh() {
+    try { records = await Api.list(); }
+    catch (e) { flash(errText(e), true); records = []; }
     const rows = $('news-rows');
     $('empty-msg').classList.toggle('hidden', records.length > 0);
     const pub = records.filter(r => r.status === 'published').length;
@@ -322,20 +382,18 @@
     return r;
   }
 
-  function saveRecord(r) {
-    const list = NewsStore.all();
-    const i = list.findIndex(x => x.id === r.id);
-    // one record, both languages: replaced as a whole
-    if (i >= 0) list[i] = r; else list.push(r);
-    if (!persist(list)) return false;
+  async function saveRecord(r) {
+    try {
+      await Api.save(r);
+    } catch (e) { flash(errText(e), true); showError($('editor-error'), errText(e)); return false; }
     closeEditor();
-    refresh();
+    await refresh();
     return true;
   }
 
   $('btn-save-draft').addEventListener('click', async () => {
     const r = await prepare('draft');
-    if (r && saveRecord(r)) flash('Saved as draft. It is hidden from the website.');
+    if (r && await saveRecord(r)) flash('Saved as draft. It is hidden from the website.');
   });
 
   $('btn-preview').addEventListener('click', async () => {
@@ -396,14 +454,14 @@
   $('btn-preview-x').addEventListener('click', closePreview);
   $('modal-preview').addEventListener('click', e => { if (e.target === $('modal-preview')) closePreview(); });
 
-  $('btn-preview-confirm').addEventListener('click', () => {
+  $('btn-preview-confirm').addEventListener('click', async () => {
     if (!previewRecord) return;
     const r = previewRecord;
     // Publishing means a person has now seen both versions.
     r.auto_zh = false; r.auto_en = false;
     r.status = 'published';
     closePreview();
-    if (saveRecord(r)) flash('Published. It now appears on the website.');
+    if (await saveRecord(r)) flash('Published. It now appears on the website.');
   });
 
   // ---------------------------------------------------------------- delete (one action removes both languages)
@@ -411,19 +469,22 @@
     $('confirm-title').textContent = 'Delete this announcement?';
     $('confirm-text').textContent = `"${rec.title_en || rec.title_zh}" will be removed in both Chinese and English. This cannot be undone.`;
     $('btn-confirm-yes').textContent = 'Delete';
-    confirmAction = () => {
-      const list = NewsStore.all().filter(r => r.id !== rec.id);
-      if (persist(list)) { refresh(); flash('Deleted (both language versions).'); }
+    confirmAction = async () => {
+      try { await Api.remove(rec.id); await refresh(); flash('Deleted (both language versions).'); }
+      catch (e) { flash(errText(e), true); }
     };
     $('modal-confirm').classList.remove('hidden');
     $('btn-confirm-no').focus();
   }
 
   $('btn-reset').addEventListener('click', () => {
-    $('confirm-title').textContent = 'Restore the original data?';
-    $('confirm-text').textContent = 'All announcements will go back to the original list collected from the college website. Your changes in this browser will be lost.';
-    $('btn-confirm-yes').textContent = 'Restore';
-    confirmAction = () => { NewsStore.reset(); closeEditor(); refresh(); flash('Original announcements restored.'); };
+    $('confirm-title').textContent = 'Load the original announcements?';
+    $('confirm-text').textContent = `The ${NEWS_SEED.length} original announcements collected from the college website will be written to the database again. If you edited any of them, those edits are replaced. Announcements you added yourself stay.`;
+    $('btn-confirm-yes').textContent = 'Load';
+    confirmAction = async () => {
+      try { await Api.save(NEWS_SEED); closeEditor(); await refresh(); flash('Original announcements loaded.'); }
+      catch (e) { flash(errText(e), true); }
+    };
     $('modal-confirm').classList.remove('hidden');
     $('btn-confirm-no').focus();
   });

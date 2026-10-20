@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initMenuCollapse();
   initNewsToggle();
+  NewsStore.load().then(renderAnnouncements);
   initComingSoonLinks();
   initStats();
   renderAnnouncements();
@@ -244,6 +245,10 @@ function renderAnnouncements() {
   if (!container) return;
 
   const other = currentLang === 'zh' ? 'en' : 'zh';
+  if (!NewsStore.isReady()) {
+    container.innerHTML = `<p class="text-sm text-slate-500 col-span-full">${currentLang === 'zh' ? '公告載入中…' : 'Loading announcements…'}</p>`;
+    return;
+  }
   const all = NewsStore.published();
   const items = newsExpanded ? all : all.slice(0, NEWS_PREVIEW_COUNT);
 

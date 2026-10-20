@@ -26,6 +26,7 @@
       </div>
       <div class="flex items-center gap-3 text-xs font-bold">
         <a href="index.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">&larr; Back to website</a>
+        <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
         <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
       </div>
     </div>
@@ -33,11 +34,15 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <!-- ==================== PASSWORD GATE ==================== -->
+    <!-- ==================== ADMIN LOGIN (Supabase Auth) ==================== -->
     <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
-      <h2 id="auth-title" class="font-serif text-2xl font-bold mb-2"></h2>
+      <h2 id="auth-title" class="font-serif text-2xl font-bold mb-2">Admin login</h2>
       <p id="auth-help" class="text-sm text-slate-600 mb-6"></p>
-      <form id="auth-form" class="space-y-4" autocomplete="off">
+      <form id="auth-form" class="space-y-4" novalidate>
+        <div>
+          <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email</label>
+          <input id="auth-email" type="email" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="username">
+        </div>
         <div>
           <label for="auth-pw" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Password</label>
           <input id="auth-pw" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="current-password">
@@ -47,11 +52,16 @@
           <input id="auth-pw2" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="new-password">
         </div>
         <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
-        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition"></button>
+        <p id="auth-info" class="text-sm text-green-800 hidden" role="status"></p>
+        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition">Log in</button>
       </form>
+      <p class="text-sm text-slate-600 mt-5">
+        <button type="button" id="auth-toggle" class="font-bold text-burgundy hover:underline">Create the admin account</button>
+        <span id="auth-toggle-note" class="text-slate-500"> (first time only)</span>
+      </p>
       <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
-        This password is saved only in this browser. It is a simple door lock for the classroom demo, not strong security.
-        If you forget it, clear this site's data in your browser to start over.
+        Only the admin's email can change announcements. Anyone else who signs in can look but not edit.
+        The first time, you will get an email to confirm your address.
       </p>
     </section>
 
@@ -67,7 +77,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
           <button id="btn-new" type="button" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white uppercase tracking-wider transition">+ New announcement</button>
-          <button id="btn-reset" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Restore original data</button>
+          <button id="btn-reset" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Load original announcements</button>
         </div>
       </div>
 
@@ -190,7 +200,7 @@
       </section>
 
       <p class="text-[11px] text-slate-500 mt-4 leading-relaxed">
-        Changes are saved in this browser only and appear on the website in the same browser.
+        Changes are saved in the Supabase database and appear on the website for every visitor.
       </p>
     </div>
   </main>
@@ -223,8 +233,9 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/news-seed.js"></script>
-  <script src="assets/js/news-store.js"></script>
   <script src="assets/js/admin-news.js"></script>
 </body>
 </html>
