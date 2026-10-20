@@ -300,9 +300,13 @@ function renderAnnouncements() {
         </div>
         <h3 class="font-serif text-base font-bold text-slate-900 group-hover:text-burgundy transition leading-snug mb-3">${escapeHtml(title)}</h3>
         <p class="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-5">${escapeHtml(excerpt)}</p>
-        <a href="${escapeHtml(n.url)}" target="_blank" rel="noopener" class="mt-auto inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider after:absolute after:inset-0 after:content-['']">
+        ${n.url
+          ? `<a href="${escapeHtml(n.url)}" target="_blank" rel="noopener" class="mt-auto inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider after:absolute after:inset-0 after:content-['']">
           <span>${currentLang === 'zh' ? '查看詳情' : 'View Details'}</span>&nbsp;<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>
-        </a>
+        </a>`
+          : `<button type="button" data-news-id="${escapeHtml(n.id)}" class="mt-auto inline-flex items-center self-start text-xs font-bold text-burgundy uppercase tracking-wider after:absolute after:inset-0 after:content-['']">
+          <span>${currentLang === 'zh' ? '查看詳情' : 'View Details'}</span>&nbsp;<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>`}
       </article>`;
     }).join('');
   }
@@ -312,6 +316,35 @@ function renderAnnouncements() {
     src.innerHTML = `${currentLang === 'zh' ? NEWS_SOURCE.label_zh : NEWS_SOURCE.label_en} · <a href="${NEWS_SOURCE.url}" target="_blank" rel="noopener" class="underline hover:text-burgundy">${NEWS_SOURCE.url} ${'<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>'}</a>`;
   }
 }
+
+// An announcement with no outside link opens here, on this site: the text first, then its image
+function openNewsDetail(id) {
+  const n = NewsStore.published().find(x => x.id === id);
+  const modal = document.getElementById('modal-announcement');
+  if (!n || !modal) return;
+  const other = currentLang === 'zh' ? 'en' : 'zh';
+  const title = n[`title_${currentLang}`] || n[`title_${other}`] || '';
+  const text = n[`content_${currentLang}`] || n[`content_${other}`] || '';
+  const img = /^(https?:\/\/|assets\/)\S+$/i.test(n.image_url || '') ? n.image_url : '';
+
+  document.getElementById('modal-date').textContent = formatNewsDate(n.date);
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML =
+    text.split(/\n+/).filter(Boolean).map(p => `<p class="text-sm leading-relaxed">${escapeHtml(p)}</p>`).join('') +
+    (img ? `<a href="${escapeHtml(img)}" target="_blank" rel="noopener" title="${currentLang === 'zh' ? '點擊查看原圖' : 'Click to see the full-size image'}" class="block mt-2 border border-slate-200"><img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" class="w-full h-auto"></a>` : '');
+  modal.firstElementChild.classList.toggle('max-w-5xl', !!img);
+  modal.firstElementChild.classList.toggle('max-w-2xl', !img);
+  modal.classList.remove('hidden');
+  modal.firstElementChild.scrollTop = 0;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('button[data-news-id]');
+  if (b) { openNewsDetail(b.dataset.newsId); return; }
+  const m = document.getElementById('modal-announcement');
+  if (m && e.target === m) closeAnnouncementModal();      // click on the dark background
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAnnouncementModal(); });
 
 function openAnnouncementModal(id) {
   const item = imMBAData.announcements.find(a => a.id === id);
@@ -330,7 +363,8 @@ function openAnnouncementModal(id) {
 }
 
 function closeAnnouncementModal() {
-  document.getElementById('modal-announcement').classList.add('hidden');
+  const m = document.getElementById('modal-announcement');
+  if (m) m.classList.add('hidden');
 }
 
 // Render Core Features

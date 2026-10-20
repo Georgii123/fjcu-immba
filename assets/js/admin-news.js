@@ -34,7 +34,7 @@
 
   // ---------------------------------------------------------------- database (Supabase)
   const toRow = r => ({
-    id: r.id, date: r.date, pinned: !!r.pinned, order: Number(r.order) || 0, status: r.status, url: r.url,
+    id: r.id, date: r.date, pinned: !!r.pinned, order: Number(r.order) || 0, status: r.status, url: r.url, image_url: r.image_url || '',
     title_zh: r.title_zh, title_en: r.title_en, content_zh: r.content_zh, content_en: r.content_en,
     auto_zh: !!r.auto_zh, auto_en: !!r.auto_en, updated_at: new Date().toISOString()
   });
@@ -92,7 +92,7 @@
     if (!r.title_en.trim()) issues.push('English title is empty');
     if (!r.content_zh.trim()) issues.push('Chinese content is empty');
     if (!r.content_en.trim()) issues.push('English content is empty');
-    if (!/^https?:\/\//i.test(r.url || '')) issues.push('Link URL is missing or not a web address');
+    if (r.url && !/^https?:\/\//i.test(r.url)) issues.push('Link URL is not a web address');
     if (r.auto_zh) issues.push('Chinese text is machine-translated and not reviewed yet');
     if (r.auto_en) issues.push('English text is machine-translated and not reviewed yet');
     const zl = r.content_zh.trim().length, el = r.content_en.trim().length;
@@ -169,7 +169,7 @@
     editingId = rec ? rec.id : null;
     const minOrder = records.length ? Math.min(...records.map(r => Number(r.order) || 0)) : 1;
     const r = rec || {
-      id: '', date: new Date().toISOString().slice(0, 10), pinned: false, order: minOrder - 1, status: 'published', url: '',
+      id: '', date: new Date().toISOString().slice(0, 10), pinned: false, order: minOrder - 1, status: 'published', url: '', image_url: '',
       title_zh: '', title_en: '', content_zh: '', content_en: '', auto_zh: false, auto_en: false
     };
     $('editor-mode').textContent = rec ? 'Edit announcement' : 'New announcement';
@@ -177,6 +177,7 @@
     $('f-id').value = r.id;
     $('f-date').value = r.date;
     $('f-url').value = r.url;
+    $('f-image').value = r.image_url || '';
     $('f-order').value = r.order;
     $('f-status').value = r.status;
     $('f-pinned').checked = !!r.pinned;
@@ -203,6 +204,7 @@
       id: $('f-id').value || ('n' + Date.now()),
       date: $('f-date').value,
       url: $('f-url').value.trim(),
+      image_url: $('f-image').value.trim(),
       order: Number($('f-order').value) || 0,
       status: status || $('f-status').value,
       pinned: $('f-pinned').checked,
@@ -308,7 +310,8 @@
 
   function validate(r) {
     if (!r.date) return 'Choose a date.';
-    if (!/^https?:\/\/\S+$/i.test(r.url)) return 'Enter a full link URL that starts with http:// or https://';
+    if (r.url && !/^https?:\/\/\S+$/i.test(r.url)) return 'The link URL must start with http:// or https:// (or leave it empty to open the announcement inside the website).';
+    if (r.image_url && !/^(https?:\/\/|assets\/)\S+$/i.test(r.image_url)) return 'The image address must start with https:// or assets/';
     if (!r.title_zh || !r.title_en) return 'Both the Chinese and the English title are required.';
     if (!r.content_zh || !r.content_en) return 'Both the Chinese and the English content are required.';
     return '';
@@ -372,7 +375,10 @@
           </div>
           <h4 class="font-serif text-base font-bold text-slate-900 leading-snug mb-3" ${zh ? 'lang="zh-TW"' : ''}>${esc(zh ? r.title_zh : r.title_en)}</h4>
           <p class="text-xs text-slate-600 leading-relaxed mb-5 whitespace-pre-line" ${zh ? 'lang="zh-TW"' : ''}>${esc(zh ? r.content_zh : r.content_en)}</p>
-          <a href="${esc(r.url)}" target="_blank" rel="noopener" class="inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider hover:underline">${zh ? '查看詳情' : 'View Details'} &nearr;</a>
+          ${r.image_url ? `<img src="${esc(r.image_url)}" alt="" class="w-full border border-slate-200 mb-5">` : ''}
+          ${r.url
+            ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider hover:underline">${zh ? '查看詳情' : 'View Details'} &nearr;</a>`
+            : `<span class="inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider">${zh ? '查看詳情（在本站開啟）' : 'View Details (opens on this site)'}</span>`}
         </article>
       </div>`;
   }

@@ -92,6 +92,10 @@ create policy "faculty photos admin insert" on storage.objects for insert to aut
 create policy "faculty photos admin update" on storage.objects for update to authenticated using (bucket_id = 'faculty-photos' and private.is_admin()) with check (bucket_id = 'faculty-photos' and private.is_admin());
 create policy "faculty photos admin delete" on storage.objects for delete to authenticated using (bucket_id = 'faculty-photos' and private.is_admin());
 
+-- Added later (already applied): an optional image for announcements that open on this website
+-- (announcements with an empty url open inside the site instead of linking out).
+alter table public.announcements add column if not exists image_url text not null default '';
+
 -- Registration allow-list. Supabase Auth calls this before it creates ANY new user
 -- (Authentication > Hooks > "Before User Created" must point at it). Only emails listed in
 -- admin_emails may register; everyone else is refused on the server. Nobody can call it through the API.
