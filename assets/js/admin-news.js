@@ -12,7 +12,6 @@
   let records = [];
   let editingId = null;           // null = creating a new record
   let confirmAction = null;
-  let authMode = 'login';         // 'login' | 'signup'
 
   function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 
@@ -62,18 +61,10 @@
   };
 
   // ---------------------------------------------------------------- login (Supabase Auth)
-  function setAuthMode(mode) {
-    authMode = mode;
-    const signup = mode === 'signup';
-    $('auth-title').textContent = signup ? 'Create the admin account' : 'Admin login';
-    $('auth-help').textContent = signup
-      ? 'Use the admin email. Choose a password (at least 6 characters). You will get an email to confirm the address.'
-      : 'Sign in with the admin email and password to manage announcements.';
-    $('auth-submit').textContent = signup ? 'Create account' : 'Log in';
-    $('auth-confirm-wrap').classList.toggle('hidden', !signup);
-    $('auth-pw').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
-    $('auth-toggle').textContent = signup ? 'I already have an account: log in' : 'Create the admin account';
-    $('auth-toggle-note').classList.toggle('hidden', signup);
+  function setAuthMode() {
+    $('auth-title').textContent = 'Admin login';
+    $('auth-help').textContent = 'Sign in with your admin email and password to manage announcements.';
+    $('auth-submit').textContent = 'Log in';
     $('auth-error').classList.add('hidden');
     $('auth-info').classList.add('hidden');
   }
@@ -82,7 +73,6 @@
     $('auth').classList.remove('hidden');
     showError($('auth-error'), msg);
     $('auth-submit').disabled = true;
-    $('auth-toggle').disabled = true;
   }
 
   async function initAuth() {
@@ -90,13 +80,12 @@
     if (!window.supabase || !window.supabase.createClient) return showAuthProblem('Could not load the Supabase library. Check your internet connection and reload.');
     sb = window.supabase.createClient(cfg.url, cfg.key);
 
-    $('auth-toggle').addEventListener('click', () => setAuthMode(authMode === 'login' ? 'signup' : 'login'));
     $('auth-form').addEventListener('submit', onAuthSubmit);
 
     const { data } = await sb.auth.getSession();
     if (data && data.session) return enterApp(data.session);
     $('auth').classList.remove('hidden');
-    setAuthMode('login');
+    setAuthMode();
   }
 
   async function onAuthSubmit(e) {
@@ -109,21 +98,9 @@
     if (!pw) return showError(err, 'Enter your password.');
     const btn = $('auth-submit'); btn.disabled = true;
     try {
-      if (authMode === 'signup') {
-        if (pw.length < 6) throw new Error('Use at least 6 characters.');
-        if (pw !== $('auth-pw2').value) throw new Error('The two passwords do not match.');
-        const { data, error } = await sb.auth.signUp({ email, password: pw });
-        if (error) throw error;
-        if (data && data.session) return enterApp(data.session);
-        info.textContent = 'Account created. Open the confirmation email we just sent, click the link, then come back here and log in.';
-        info.classList.remove('hidden');
-        setAuthMode('login');
-        info.classList.remove('hidden');
-      } else {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-        if (error) throw error;
-        await enterApp(data.session);
-      }
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+      if (error) throw error;
+      await enterApp(data.session);
     } catch (ex) {
       showError(err, /Invalid login credentials/i.test(ex.message) ? 'Wrong email or password (or the email is not confirmed yet).' : errText(ex));
     } finally { btn.disabled = false; }
