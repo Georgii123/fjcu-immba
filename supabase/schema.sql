@@ -50,3 +50,31 @@ create policy "admin delete"   on public.announcements for delete to authenticat
 
 grant select on public.announcements to anon;
 grant select, insert, update, delete on public.announcements to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Faculty table (slides Step 4 and 5). One row per faculty member.
+-- ---------------------------------------------------------------------------
+create table if not exists public.faculty (
+  id              uuid    primary key default gen_random_uuid(),   -- unique faculty ID
+  name            text    not null,                                -- faculty name
+  title           text    not null default '',                     -- academic title
+  education       text    not null default '',                     -- education
+  research_fields text    not null default '',                     -- research interests
+  email           text    not null default '',                     -- contact email
+  phone           text    not null default '',                     -- phone
+  website         text    not null default '',                     -- personal website
+  image_url       text    not null default '',                     -- faculty photo
+  category        text    not null default 'Full-time' check (category in ('Full-time','Adjunct')),
+  sort_order      integer not null default 0                       -- display order
+);
+
+alter table public.faculty enable row level security;
+
+-- Visitors may read; only the admin may change
+create policy "faculty public read" on public.faculty for select to anon, authenticated using (true);
+create policy "faculty admin insert" on public.faculty for insert to authenticated with check (private.is_admin());
+create policy "faculty admin update" on public.faculty for update to authenticated using (private.is_admin()) with check (private.is_admin());
+create policy "faculty admin delete" on public.faculty for delete to authenticated using (private.is_admin());
+
+grant select on public.faculty to anon;
+grant select, insert, update, delete on public.faculty to authenticated;
