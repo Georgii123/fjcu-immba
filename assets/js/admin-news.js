@@ -39,6 +39,27 @@
     auto_zh: !!r.auto_zh, auto_en: !!r.auto_en, updated_at: new Date().toISOString()
   });
 
+  // ---------------------------------------------------------------- attached files (Supabase Storage)
+  const FILE_BUCKET = 'announcement-files';
+  const FILE_PREFIX = '/storage/v1/object/public/' + FILE_BUCKET + '/';
+  const MAX_FILE = 10 * 1024 * 1024;
+  const FILE_TYPES = {
+    'image/jpeg': 1, 'image/png': 1, 'image/webp': 1, 'image/gif': 1, 'application/pdf': 1,
+    'application/msword': 1, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 1,
+    'application/vnd.ms-excel': 1, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 1,
+    'application/vnd.ms-powerpoint': 1, 'application/vnd.openxmlformats-officedocument.presentationml.presentation': 1
+  };
+  const EXT_TYPE = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', pdf: 'application/pdf',
+    doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' };
+  const extOf = u => ((String(u || '').split(/[?#]/)[0].match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase();
+  const fileKind = u => { const e = extOf(u); return /^(jpe?g|png|webp|gif)$/.test(e) ? 'image' : e === 'pdf' ? 'pdf' : 'file'; };
+  const fileName = u => { try { return decodeURIComponent(String(u).split(/[?#]/)[0].split('/').pop()); } catch (e) { return String(u).split('/').pop(); } };
+
+  let originalFile = '';       // the file this record had when the editor opened
+  let sessionUploads = [];     // files uploaded while this editor is open
+
   const Api = {
     async list() {
       const { data, error } = await sb.from('announcements').select('*').order('order', { ascending: true });
@@ -57,6 +78,27 @@
       const { data, error } = await sb.from('announcements').delete().eq('id', id).select();
       if (error) throw error;
       if (!data || !data.length) throw new Error('Not allowed: the database did not delete the announcement.');
+    },
+    // Upload one file; returns its public address. The original file name stays in the address.
+    async uploadFile(file) {
+      const type = file.type || EXT_TYPE[extOf(file.name)] || '';
+      if (!FILE_TYPES[type]) throw new Error('Use an image, PDF, Word, Excel or PowerPoint file.');
+      if (file.size > MAX_FILE) throw new Error('The file is larger than 10 MB. Choose a smaller one.');
+      const ext = extOf(file.name);
+      const base = file.name.replace(/\.[^.]*$/, '').replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'file';
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2);
+      const path = id + '/' + base + (ext ? '.' + ext : '');
+      const { error } = await sb.storage.from(FILE_BUCKET).upload(path, file, { contentType: type, cacheControl: '31536000', upsert: false });
+      if (error) throw error;
+      return sb.storage.from(FILE_BUCKET).getPublicUrl(path).data.publicUrl;
+    },
+    // Delete a stored file, only if it lives in our bucket. A leftover file is harmless, so never fatal.
+    async removeFile(url) {
+      try {
+        const i = (url || '').indexOf(FILE_PREFIX);
+        if (i < 0) return;
+        await sb.storage.from(FILE_BUCKET).remove([decodeURIComponent(url.slice(i + FILE_PREFIX.length))]);
+      } catch (e) { /* ignore */ }
     }
   };
 
@@ -166,6 +208,7 @@
   function markAuto(id) { autoFields.add(id); refreshBadges(); }
 
   function openEditor(rec) {
+    cleanupFiles(null, false);
     editingId = rec ? rec.id : null;
     const minOrder = records.length ? Math.min(...records.map(r => Number(r.order) || 0)) : 1;
     const r = rec || {
@@ -178,6 +221,10 @@
     $('f-date').value = r.date;
     $('f-url').value = r.url;
     $('f-image').value = r.image_url || '';
+    originalFile = r.image_url || '';
+    sessionUploads = [];
+    $('f-file').value = '';
+    updateFileUI();
     $('f-order').value = r.order;
     $('f-status').value = r.status;
     $('f-pinned').checked = !!r.pinned;
@@ -193,6 +240,39 @@
   }
 
   function closeEditor() { $('editor').classList.add('hidden'); editingId = null; }
+
+  // Files uploaded but not kept (editor cancelled, or file replaced) are deleted so nothing is left public.
+  function cleanupFiles(keepUrl, saved) {
+    const drop = new Set(sessionUploads);
+    if (saved && originalFile && originalFile !== keepUrl) drop.add(originalFile);
+    drop.delete(keepUrl);
+    drop.forEach(u => Api.removeFile(u));
+    sessionUploads = []; originalFile = '';
+  }
+  function abandonEditor() { cleanupFiles(null, false); closeEditor(); }
+
+  function updateFileUI() {
+    const url = $('f-image').value.trim();
+    $('file-current').textContent = url ? '\u{1F4CE} ' + fileName(url) : 'No file attached';
+    $('btn-file-remove').classList.toggle('hidden', !url);
+  }
+
+  $('f-image').addEventListener('input', updateFileUI);
+  $('btn-file-remove').addEventListener('click', () => { $('f-image').value = ''; $('f-file').value = ''; updateFileUI(); });
+  $('f-file').addEventListener('change', async () => {
+    const f = $('f-file').files[0];
+    const err = $('editor-error'); err.classList.add('hidden');
+    if (!f) return;
+    const label = $('f-file-btn'); const was = label.textContent;
+    label.textContent = 'Uploading\u2026'; label.classList.add('opacity-60', 'pointer-events-none');
+    try {
+      const url = await Api.uploadFile(f);
+      sessionUploads.push(url);
+      $('f-image').value = url;
+      updateFileUI();
+    } catch (e) { showError(err, errText(e)); }
+    finally { label.textContent = was; label.classList.remove('opacity-60', 'pointer-events-none'); $('f-file').value = ''; }
+  });
 
   // Typing in a field by hand means a person has reviewed that field.
   [...FIELDS.zh, ...FIELDS.en].forEach(id => {
@@ -311,7 +391,7 @@
   function validate(r) {
     if (!r.date) return 'Choose a date.';
     if (r.url && !/^https?:\/\/\S+$/i.test(r.url)) return 'The link URL must start with http:// or https:// (or leave it empty to open the announcement inside the website).';
-    if (r.image_url && !/^(https?:\/\/|assets\/)\S+$/i.test(r.image_url)) return 'The image address must start with https:// or assets/';
+    if (r.image_url && !/^(https?:\/\/|assets\/)\S+$/i.test(r.image_url)) return 'The file address must start with https:// or assets/';
     if (!r.title_zh || !r.title_en) return 'Both the Chinese and the English title are required.';
     if (!r.content_zh || !r.content_en) return 'Both the Chinese and the English content are required.';
     return '';
@@ -330,6 +410,7 @@
     try {
       await Api.save(r);
     } catch (e) { flash(errText(e), true); showError($('editor-error'), errText(e)); return false; }
+    cleanupFiles(r.image_url, true);
     closeEditor();
     await refresh();
     return true;
@@ -350,8 +431,8 @@
     if (r) openPreview(r, true);
   });
 
-  $('btn-cancel').addEventListener('click', closeEditor);
-  $('btn-editor-close').addEventListener('click', closeEditor);
+  $('btn-cancel').addEventListener('click', abandonEditor);
+  $('btn-editor-close').addEventListener('click', abandonEditor);
   $('btn-new').addEventListener('click', () => openEditor(null));
 
   // ---------------------------------------------------------------- preview (both languages)
@@ -375,7 +456,9 @@
           </div>
           <h4 class="font-serif text-base font-bold text-slate-900 leading-snug mb-3" ${zh ? 'lang="zh-TW"' : ''}>${esc(zh ? r.title_zh : r.title_en)}</h4>
           <p class="text-xs text-slate-600 leading-relaxed mb-5 whitespace-pre-line" ${zh ? 'lang="zh-TW"' : ''}>${esc(zh ? r.content_zh : r.content_en)}</p>
-          ${r.image_url ? `<img src="${esc(r.image_url)}" alt="" class="w-full border border-slate-200 mb-5">` : ''}
+          ${r.image_url ? (fileKind(r.image_url) === 'image'
+            ? `<img src="${esc(r.image_url)}" alt="" class="w-full border border-slate-200 mb-5">`
+            : `<div class="flex items-center gap-3 border border-slate-200 bg-slate-50 px-3 py-3 mb-5 text-xs font-semibold text-slate-700 break-all"><span aria-hidden="true">${fileKind(r.image_url) === 'pdf' ? 'PDF' : 'FILE'}</span><span>${esc(fileName(r.image_url))}</span></div>`) : ''}
           ${r.url
             ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider hover:underline">${zh ? '查看詳情' : 'View Details'} &nearr;</a>`
             : `<span class="inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider">${zh ? '查看詳情（在本站開啟）' : 'View Details (opens on this site)'}</span>`}
@@ -417,7 +500,7 @@
     $('confirm-text').textContent = `"${rec.title_en || rec.title_zh}" will be removed in both Chinese and English. This cannot be undone.`;
     $('btn-confirm-yes').textContent = 'Delete';
     confirmAction = async () => {
-      try { await Api.remove(rec.id); await refresh(); flash('Deleted (both language versions).'); }
+      try { await Api.remove(rec.id); Api.removeFile(rec.image_url); await refresh(); flash('Deleted (both language versions).'); }
       catch (e) { flash(errText(e), true); }
     };
     $('modal-confirm').classList.remove('hidden');

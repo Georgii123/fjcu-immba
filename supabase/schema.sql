@@ -96,6 +96,20 @@ create policy "faculty photos admin delete" on storage.objects for delete to aut
 -- (announcements with an empty url open inside the site instead of linking out).
 alter table public.announcements add column if not exists image_url text not null default '';
 
+-- Added later (already applied): a file can be attached to an announcement (stored in image_url).
+-- Images, PDF and Office files, up to 10 MB. Public to read (the announcement shows it); only the admin may upload or delete.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('announcement-files', 'announcement-files', true, 10485760, array[
+  'image/jpeg','image/png','image/webp','image/gif','application/pdf',
+  'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation'])
+on conflict (id) do nothing;
+
+create policy "announcement files admin insert" on storage.objects for insert to authenticated with check (bucket_id = 'announcement-files' and private.is_admin());
+create policy "announcement files admin update" on storage.objects for update to authenticated using (bucket_id = 'announcement-files' and private.is_admin()) with check (bucket_id = 'announcement-files' and private.is_admin());
+create policy "announcement files admin delete" on storage.objects for delete to authenticated using (bucket_id = 'announcement-files' and private.is_admin());
+
 -- Registration allow-list. Supabase Auth calls this before it creates ANY new user
 -- (Authentication > Hooks > "Before User Created" must point at it). Only emails listed in
 -- admin_emails may register; everyone else is refused on the server. Nobody can call it through the API.

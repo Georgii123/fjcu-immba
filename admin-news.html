@@ -84,8 +84,16 @@
                 <input id="f-url" type="url" placeholder="https://..." class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
               </div>
               <div class="sm:col-span-2 lg:col-span-4">
-                <label for="f-image" class="block text-xs font-bold text-slate-600 mb-1">Image address (optional). Shown under the text when the announcement opens on this website</label>
-                <input id="f-image" type="text" placeholder="assets/img/announcements/... or https://..." class="w-full border border-slate-300 px-3 py-2 text-sm font-mono focus:outline-none focus:border-burgundy">
+                <div class="block text-xs font-bold text-slate-600 mb-1">Attached file (optional). It is shown when the announcement is opened on this website</div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <label for="f-file" id="f-file-btn" class="px-3 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition text-xs font-bold cursor-pointer">Upload file&hellip;</label>
+                  <input id="f-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" class="sr-only">
+                  <span id="file-current" class="text-xs text-slate-700 font-semibold min-w-0 break-all"></span>
+                  <button type="button" id="btn-file-remove" class="hidden text-xs font-bold text-red-700 hover:underline">Remove file</button>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1.5">Image, PDF, Word, Excel or PowerPoint, up to 10 MB. It is uploaded to Supabase Storage as soon as you choose it.</p>
+                <label for="f-image" class="block text-[11px] font-bold text-slate-500 mt-3 mb-1">File address (filled in after the upload; you can also paste an https:// address)</label>
+                <input id="f-image" type="text" placeholder="https://..." class="w-full border border-slate-300 px-3 py-2 text-xs font-mono focus:outline-none focus:border-burgundy">
               </div>
               <div>
                 <label for="f-order" class="block text-xs font-bold text-slate-600 mb-1">Display order (1 = first)</label>

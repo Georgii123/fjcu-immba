@@ -300,7 +300,7 @@ function renderAnnouncements() {
         </div>
         <h3 class="font-serif text-base font-bold text-slate-900 group-hover:text-burgundy transition leading-snug mb-3">${escapeHtml(title)}</h3>
         <p class="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-5">${escapeHtml(excerpt)}</p>
-        ${n.url
+        ${(n.url && !n.image_url)
           ? `<a href="${escapeHtml(n.url)}" target="_blank" rel="noopener" class="mt-auto inline-flex items-center text-xs font-bold text-burgundy uppercase tracking-wider after:absolute after:inset-0 after:content-['']">
           <span>${currentLang === 'zh' ? '查看詳情' : 'View Details'}</span>&nbsp;<svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg>
         </a>`
@@ -317,7 +317,30 @@ function renderAnnouncements() {
   }
 }
 
-// An announcement with no outside link opens here, on this site: the text first, then its image
+// An announcement opens here, on this site, when it has no outside link or has a file attached:
+// the text first, then the file (image shown, PDF embedded, other files as a download card)
+function newsFileKind(url) {
+  const ext = ((String(url || '').split(/[?#]/)[0].match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase();
+  return /^(jpe?g|png|webp|gif)$/.test(ext) ? 'image' : ext === 'pdf' ? 'pdf' : 'file';
+}
+
+function newsFileHtml(url, title) {
+  const safe = escapeHtml(url);
+  const zh = currentLang === 'zh';
+  let name = url.split(/[?#]/)[0].split('/').pop();
+  try { name = decodeURIComponent(name); } catch (e) { /* keep as is */ }
+  const open = zh ? '開啟 / 下載檔案' : 'Open / download file';
+  const link = `<a href="${safe}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-xs font-bold text-burgundy uppercase tracking-wider hover:underline">${open} &nearr;</a>`;
+  const kind = newsFileKind(url);
+  if (kind === 'image') {
+    return `<a href="${safe}" target="_blank" rel="noopener" title="${zh ? '點擊查看原圖' : 'Click to see the full-size image'}" class="block mt-2 border border-slate-200"><img src="${safe}" alt="${escapeHtml(title)}" class="w-full h-auto"></a>`;
+  }
+  if (kind === 'pdf') {
+    return `<div class="mt-2"><iframe src="${safe}" title="${escapeHtml(name)}" class="w-full h-[70vh] border border-slate-200 bg-slate-50"></iframe><div class="mt-2">${link}</div></div>`;
+  }
+  return `<div class="mt-2 flex flex-wrap items-center justify-between gap-3 border border-slate-200 bg-slate-50 px-4 py-4"><div class="min-w-0"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">${zh ? '附件' : 'Attachment'}</div><div class="text-sm font-semibold text-slate-800 break-all">${escapeHtml(name)}</div></div>${link}</div>`;
+}
+
 function openNewsDetail(id) {
   const n = NewsStore.published().find(x => x.id === id);
   const modal = document.getElementById('modal-announcement');
@@ -325,15 +348,18 @@ function openNewsDetail(id) {
   const other = currentLang === 'zh' ? 'en' : 'zh';
   const title = n[`title_${currentLang}`] || n[`title_${other}`] || '';
   const text = n[`content_${currentLang}`] || n[`content_${other}`] || '';
-  const img = /^(https?:\/\/|assets\/)\S+$/i.test(n.image_url || '') ? n.image_url : '';
+  const file = /^(https?:\/\/|assets\/)\S+$/i.test(n.image_url || '') ? n.image_url : '';
+  const outside = /^https?:\/\//i.test(n.url || '') ? n.url : '';
 
   document.getElementById('modal-date').textContent = formatNewsDate(n.date);
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-body').innerHTML =
     text.split(/\n+/).filter(Boolean).map(p => `<p class="text-sm leading-relaxed">${escapeHtml(p)}</p>`).join('') +
-    (img ? `<a href="${escapeHtml(img)}" target="_blank" rel="noopener" title="${currentLang === 'zh' ? '點擊查看原圖' : 'Click to see the full-size image'}" class="block mt-2 border border-slate-200"><img src="${escapeHtml(img)}" alt="${escapeHtml(title)}" class="w-full h-auto"></a>` : '');
-  modal.firstElementChild.classList.toggle('max-w-5xl', !!img);
-  modal.firstElementChild.classList.toggle('max-w-2xl', !img);
+    (file ? newsFileHtml(file, title) : '') +
+    (outside ? `<p class="pt-2"><a href="${escapeHtml(outside)}" target="_blank" rel="noopener" class="text-xs font-bold text-slate-600 hover:text-burgundy underline underline-offset-2">${currentLang === 'zh' ? '閱讀原始公告' : 'Read the original announcement'} &nearr;</a></p>` : '');
+  const wide = !!file;
+  modal.firstElementChild.classList.toggle('max-w-5xl', wide);
+  modal.firstElementChild.classList.toggle('max-w-2xl', !wide);
   modal.classList.remove('hidden');
   modal.firstElementChild.scrollTop = 0;
 }
