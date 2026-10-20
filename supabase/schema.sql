@@ -78,3 +78,16 @@ create policy "faculty admin delete" on public.faculty for delete to authenticat
 
 grant select on public.faculty to anon;
 grant select, insert, update, delete on public.faculty to authenticated;
+
+-- Added later (already applied): the "Visiting" category and a bucket for faculty photos.
+-- Photos are public to read (the website shows them); only the admin may upload, replace or delete.
+alter table public.faculty drop constraint if exists faculty_category_check;
+alter table public.faculty add constraint faculty_category_check check (category in ('Full-time','Visiting','Adjunct'));
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('faculty-photos', 'faculty-photos', true, 2097152, array['image/jpeg','image/png','image/webp'])
+on conflict (id) do nothing;
+
+create policy "faculty photos admin insert" on storage.objects for insert to authenticated with check (bucket_id = 'faculty-photos' and private.is_admin());
+create policy "faculty photos admin update" on storage.objects for update to authenticated using (bucket_id = 'faculty-photos' and private.is_admin()) with check (bucket_id = 'faculty-photos' and private.is_admin());
+create policy "faculty photos admin delete" on storage.objects for delete to authenticated using (bucket_id = 'faculty-photos' and private.is_admin());

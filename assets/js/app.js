@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMenuCollapse();
   initNewsToggle();
   NewsStore.load().then(renderAnnouncements);
+  FacultyStore.load().then(renderFaculty);
   initComingSoonLinks();
   initStats();
   renderAnnouncements();
@@ -422,8 +423,9 @@ function renderFaculty() {
       </div>
     </article>`;
 
+  const all = FacultyStore.all();
   const group = (cat, key) => {
-    const rows = FACULTY_SEED.filter(f => f.category === cat).sort((a, b) => a.sort_order - b.sort_order);
+    const rows = all.filter(f => f.category === cat).sort((a, b) => a.sort_order - b.sort_order);
     if (!rows.length) return '';
     return `
       <h3 class="flex items-center gap-4 font-serif text-xl font-bold text-slate-900 mb-6 mt-10 first:mt-0">
@@ -432,7 +434,11 @@ function renderFaculty() {
       <div class="space-y-5">${rows.map(card).join('')}</div>`;
   };
 
-  container.innerHTML = group('Full-time', 'fac_fulltime') + group('Adjunct', 'fac_parttime');
+  if (!FacultyStore.isReady()) {
+    container.innerHTML = `<p class="py-10 text-center text-sm text-slate-500">${currentLang === 'zh' ? '載入師資中…' : 'Loading faculty…'}</p>`;
+    return;
+  }
+  container.innerHTML = group('Full-time', 'fac_fulltime') + group('Visiting', 'fac_visiting') + group('Adjunct', 'fac_adjunct');
 }
 
 // Render Global Partners with Images

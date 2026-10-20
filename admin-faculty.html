@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AdminFaculty | imMBA Back-Office</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 min-h-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">imMBA Back-Office</div>
+          <h1 class="font-serif text-lg font-bold leading-tight truncate">AdminFaculty</h1>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs font-bold">
+        <a href="admin-news.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">AdminNews</a>
+        <a href="index.html#faculty" class="px-3 py-2 border border-slate-600 hover:border-white transition">&larr; Back to website</a>
+        <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
+        <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- ==================== ADMIN LOGIN (Supabase Auth) ==================== -->
+    <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
+      <h2 class="font-serif text-2xl font-bold mb-2">Admin login</h2>
+      <p class="text-sm text-slate-600 mb-6">Sign in with the admin email and password to manage the faculty list.</p>
+      <form id="auth-form" class="space-y-4" novalidate>
+        <div>
+          <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email</label>
+          <input id="auth-email" type="email" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="username">
+        </div>
+        <div>
+          <label for="auth-pw" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+          <input id="auth-pw" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="current-password">
+        </div>
+        <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
+        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition">Log in</button>
+      </form>
+      <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
+        This is the same login as AdminNews. If you have not created the admin account yet, do it once on the
+        <a href="admin-news.html" class="underline font-bold">AdminNews page</a>. Only the admin's email can change the faculty list.
+      </p>
+    </section>
+
+    <!-- ==================== ADMIN APP ==================== -->
+    <div id="app" class="hidden">
+
+      <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1">Manage faculty</div>
+          <h2 class="font-serif text-3xl font-bold">Current Faculty List</h2>
+          <p class="text-sm text-slate-600 mt-1">Changes are saved in Supabase and appear on the website's Faculty section for every visitor. <span id="count-summary"></span></p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <button id="btn-new" type="button" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white uppercase tracking-wider transition">+ New faculty member</button>
+          <button id="btn-load-originals" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Load original faculty</button>
+        </div>
+      </div>
+
+      <p id="status-msg" class="mb-4 text-sm font-semibold hidden" role="status" aria-live="polite"></p>
+
+      <!-- Editor -->
+      <section id="editor" class="hidden mb-10 bg-white border-2 border-burgundy p-6 sm:p-8" aria-labelledby="editor-title">
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div id="editor-mode" class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1"></div>
+            <h3 id="editor-title" class="font-serif text-2xl font-bold">Faculty member</h3>
+          </div>
+          <button id="btn-editor-close" type="button" class="text-slate-400 hover:text-slate-800 text-2xl leading-none px-2" aria-label="Close editor">&times;</button>
+        </div>
+
+        <form id="editor-form" novalidate>
+          <div class="grid lg:grid-cols-[12rem_1fr] gap-8">
+            <!-- Photo -->
+            <div>
+              <div class="block text-xs font-bold text-slate-600 mb-1">Faculty photo</div>
+              <div class="w-48 h-56 bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-xs text-slate-400">
+                <img id="photo-preview" src="" alt="" class="hidden w-full h-full object-cover object-top">
+                <span id="photo-empty">No photo</span>
+              </div>
+              <label for="f-photo" class="mt-3 inline-block px-3 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition text-xs font-bold cursor-pointer">Choose photo&hellip;</label>
+              <input id="f-photo" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only">
+              <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">JPG, PNG or WebP, up to 2 MB. Uploaded to Supabase Storage when you save.</p>
+            </div>
+
+            <!-- Fields -->
+            <div class="grid sm:grid-cols-2 gap-4 content-start">
+              <input type="hidden" id="f-id">
+              <div>
+                <label for="f-name" class="block text-xs font-bold text-slate-600 mb-1">Name <span class="text-burgundy">*</span></label>
+                <input id="f-name" type="text" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div>
+                <label for="f-category" class="block text-xs font-bold text-slate-600 mb-1">Category</label>
+                <select id="f-category" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy">
+                  <option value="Full-time">Full-time Faculty</option>
+                  <option value="Visiting">Visiting Faculty</option>
+                  <option value="Adjunct">Adjunct Faculty</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-title" class="block text-xs font-bold text-slate-600 mb-1">Title / position</label>
+                <input id="f-title" type="text" placeholder="Associate Professor, Chair of ..." class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-education" class="block text-xs font-bold text-slate-600 mb-1">Education</label>
+                <input id="f-education" type="text" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-research" class="block text-xs font-bold text-slate-600 mb-1">Research fields (separate with commas)</label>
+                <textarea id="f-research" rows="2" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy"></textarea>
+              </div>
+              <div>
+                <label for="f-email" class="block text-xs font-bold text-slate-600 mb-1">Email</label>
+                <input id="f-email" type="email" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div>
+                <label for="f-phone" class="block text-xs font-bold text-slate-600 mb-1">Phone</label>
+                <input id="f-phone" type="text" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-website" class="block text-xs font-bold text-slate-600 mb-1">Personal website</label>
+                <input id="f-website" type="url" placeholder="https://..." class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy">
+              </div>
+              <div class="sm:col-span-2">
+                <label for="f-image-url" class="block text-xs font-bold text-slate-600 mb-1">Photo address (image URL, filled in automatically after an upload)</label>
+                <input id="f-image-url" type="text" class="w-full border border-slate-300 px-3 py-2 text-xs font-mono focus:outline-none focus:border-burgundy">
+              </div>
+            </div>
+          </div>
+
+          <p id="editor-error" class="text-sm text-red-700 mt-6 hidden" role="alert"></p>
+
+          <div class="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-200 text-xs font-bold">
+            <button type="submit" id="btn-save" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white transition uppercase tracking-wider">Save</button>
+            <button type="button" id="btn-cancel" class="px-5 py-2.5 text-slate-500 hover:text-slate-900 transition uppercase tracking-wider">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- List, grouped by category. Drag a row by its handle, or use the arrows, to reorder. -->
+      <section aria-label="Faculty list">
+        <p class="text-[11px] text-slate-500 mb-3">Drag the &#x2807; handle (or use the arrows) to change the order. Order is saved straight away.</p>
+        <div id="faculty-groups" class="space-y-8"></div>
+        <p id="empty-msg" class="hidden p-8 text-center text-sm text-slate-500 bg-white border border-slate-200">
+          The faculty list in the database is empty, so the website is showing its built-in copy.
+          Click "Load original faculty" to copy the 19 professors (with photos) into Supabase, or add people one by one.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== CONFIRM MODAL ==================== -->
+  <div id="modal-confirm" class="fixed inset-0 z-50 hidden bg-slate-950/70 flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="bg-white w-full max-w-md p-6">
+      <h3 id="confirm-title" class="font-serif text-xl font-bold mb-2">Are you sure?</h3>
+      <p id="confirm-text" class="text-sm text-slate-600 mb-6"></p>
+      <div class="flex justify-end gap-3 text-xs font-bold">
+        <button id="btn-confirm-no" type="button" class="px-5 py-2.5 border border-slate-300 hover:border-slate-900 transition uppercase tracking-wider">Cancel</button>
+        <button id="btn-confirm-yes" type="button" class="px-5 py-2.5 bg-burgundy hover:bg-burgundyDark text-white transition uppercase tracking-wider">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/faculty-seed.js"></script>
+  <script src="assets/js/admin-faculty.js"></script>
+</body>
+</html>
