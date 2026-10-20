@@ -91,3 +91,19 @@ on conflict (id) do nothing;
 create policy "faculty photos admin insert" on storage.objects for insert to authenticated with check (bucket_id = 'faculty-photos' and private.is_admin());
 create policy "faculty photos admin update" on storage.objects for update to authenticated using (bucket_id = 'faculty-photos' and private.is_admin()) with check (bucket_id = 'faculty-photos' and private.is_admin());
 create policy "faculty photos admin delete" on storage.objects for delete to authenticated using (bucket_id = 'faculty-photos' and private.is_admin());
+
+-- Registration allow-list. Supabase Auth calls this before it creates ANY new user
+-- (Authentication > Hooks > "Before User Created" must point at it). Only emails listed in
+-- admin_emails may register; everyone else is refused on the server. Nobody can call it through the API.
+create or replace function public.hook_only_approved_emails(event jsonb)
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+begin
+  if exists (select 1 from public.admin_emails a where lower(a.email) = lower(event->'user'->>'email')) then
+    return '{}'::jsonb;
+  end if;
+  return jsonb_build_object('error', jsonb_build_object('message', 'This email is not authorised to register.', 'http_code', 403));
+end;
+$$;
+revoke all on function public.hook_only_approved_emails(jsonb) from public, anon, authenticated;
+grant execute on function public.hook_only_approved_emails(jsonb) to supabase_auth_admin;

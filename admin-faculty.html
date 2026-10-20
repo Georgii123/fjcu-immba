@@ -37,23 +37,7 @@
 
     <!-- ==================== ADMIN LOGIN (Supabase Auth) ==================== -->
     <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
-      <h2 class="font-serif text-2xl font-bold mb-2">Admin login</h2>
-      <p class="text-sm text-slate-600 mb-6">Sign in with the admin email and password to manage the faculty list.</p>
-      <form id="auth-form" class="space-y-4" novalidate>
-        <div>
-          <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email</label>
-          <input id="auth-email" type="email" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="username">
-        </div>
-        <div>
-          <label for="auth-pw" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Password</label>
-          <input id="auth-pw" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="current-password">
-        </div>
-        <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
-        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition">Log in</button>
-      </form>
-      <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
-        This is the same login as AdminNews. Only authorised people can log in; there is no public sign-up.
-      </p>
+      <!-- Filled in by admin-auth.js -->
     </section>
 
     <!-- ==================== ADMIN APP ==================== -->
@@ -178,6 +162,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/admin-auth.js"></script>
   <script src="assets/js/faculty-seed.js"></script>
   <script src="assets/js/admin-faculty.js"></script>
 </body>

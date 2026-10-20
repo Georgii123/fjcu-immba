@@ -16,7 +16,7 @@
 
   <!-- ==================== TOP BAR ==================== -->
   <header class="bg-slate-900 text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 min-h-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div class="flex items-center gap-3 min-w-0">
         <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
         <div class="min-w-0">
@@ -24,7 +24,7 @@
           <h1 class="font-serif text-lg font-bold leading-tight truncate">AdminNews</h1>
         </div>
       </div>
-      <div class="flex items-center gap-3 text-xs font-bold">
+      <div class="flex flex-wrap items-center gap-3 text-xs font-bold">
         <a href="admin-faculty.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">AdminFaculty</a>
         <a href="index.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">&larr; Back to website</a>
         <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
@@ -37,24 +37,7 @@
 
     <!-- ==================== ADMIN LOGIN (Supabase Auth) ==================== -->
     <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
-      <h2 id="auth-title" class="font-serif text-2xl font-bold mb-2">Admin login</h2>
-      <p id="auth-help" class="text-sm text-slate-600 mb-6"></p>
-      <form id="auth-form" class="space-y-4" novalidate>
-        <div>
-          <label for="auth-email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email</label>
-          <input id="auth-email" type="email" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="username">
-        </div>
-        <div>
-          <label for="auth-pw" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Password</label>
-          <input id="auth-pw" type="password" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" autocomplete="current-password">
-        </div>
-        <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
-        <p id="auth-info" class="text-sm text-green-800 hidden" role="status"></p>
-        <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition">Log in</button>
-      </form>
-      <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
-        Only authorised people can log in here. Accounts are created by the site owner; there is no public sign-up.
-      </p>
+      <!-- Filled in by admin-auth.js -->
     </section>
 
     <!-- ==================== ADMIN APP ==================== -->
@@ -227,6 +210,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/admin-auth.js"></script>
   <script src="assets/js/news-seed.js"></script>
   <script src="assets/js/admin-news.js"></script>
 </body>

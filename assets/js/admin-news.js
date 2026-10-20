@@ -60,50 +60,14 @@
     }
   };
 
-  // ---------------------------------------------------------------- login (Supabase Auth)
-  function setAuthMode() {
-    $('auth-title').textContent = 'Admin login';
-    $('auth-help').textContent = 'Sign in with your admin email and password to manage announcements.';
-    $('auth-submit').textContent = 'Log in';
-    $('auth-error').classList.add('hidden');
-    $('auth-info').classList.add('hidden');
-  }
-
-  function showAuthProblem(msg) {
-    $('auth').classList.remove('hidden');
-    showError($('auth-error'), msg);
-    $('auth-submit').disabled = true;
-  }
-
+  // ---------------------------------------------------------------- login (Supabase Auth, see admin-auth.js)
   async function initAuth() {
-    if (!cfg || !cfg.url || !cfg.key) return showAuthProblem('Supabase is not configured (assets/js/supabase-config.js).');
-    if (!window.supabase || !window.supabase.createClient) return showAuthProblem('Could not load the Supabase library. Check your internet connection and reload.');
+    const box = $('auth');
+    const problem = msg => { box.classList.remove('hidden'); box.innerHTML = `<p class="text-sm text-red-700" role="alert">${msg}</p>`; };
+    if (!cfg || !cfg.url || !cfg.key) return problem('Supabase is not configured (assets/js/supabase-config.js).');
+    if (!window.supabase || !window.supabase.createClient) return problem('Could not load the Supabase library. Check your internet connection and reload.');
     sb = window.supabase.createClient(cfg.url, cfg.key);
-
-    $('auth-form').addEventListener('submit', onAuthSubmit);
-
-    const { data } = await sb.auth.getSession();
-    if (data && data.session) return enterApp(data.session);
-    $('auth').classList.remove('hidden');
-    setAuthMode();
-  }
-
-  async function onAuthSubmit(e) {
-    e.preventDefault();
-    const err = $('auth-error'), info = $('auth-info');
-    err.classList.add('hidden'); info.classList.add('hidden');
-    const email = $('auth-email').value.trim();
-    const pw = $('auth-pw').value;
-    if (!/^\S+@\S+\.\S+$/.test(email)) return showError(err, 'Enter a valid email address.');
-    if (!pw) return showError(err, 'Enter your password.');
-    const btn = $('auth-submit'); btn.disabled = true;
-    try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-      if (error) throw error;
-      await enterApp(data.session);
-    } catch (ex) {
-      showError(err, /Invalid login credentials/i.test(ex.message) ? 'Wrong email or password (or the email is not confirmed yet).' : errText(ex));
-    } finally { btn.disabled = false; }
+    AdminAuth.init({ sb, area: 'announcements', onSession: enterApp });
   }
 
   async function enterApp(session) {
