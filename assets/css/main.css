@@ -94,6 +94,11 @@ section[id] {
 @media (min-width: 768px) {
   #hero > div { padding-top: calc(var(--hdr-h, 0px) + 9rem); }
 }
+/* Title banner on the inner pages (About, Admissions, Curriculum, Faculty) */
+.page-hero > div { padding-top: calc(var(--hdr-h, 0px) + 2.5rem); }
+@media (min-width: 768px) {
+  .page-hero > div { padding-top: calc(var(--hdr-h, 0px) + 3.5rem); }
+}
 @media (min-width: 1024px) {
   #navbar {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0s;

@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguage();
   initMenuCollapse();
   initNewsToggle();
-  NewsStore.load().then(renderAnnouncements);
-  FacultyStore.load().then(renderFaculty);
+  if (document.getElementById('announcements-list')) NewsStore.load().then(renderAnnouncements);
+  if (document.getElementById('faculty-list')) FacultyStore.load().then(renderFaculty);
   initComingSoonLinks();
   initStats();
   renderAnnouncements();
@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Language Switcher Functionality
 function setLanguage(lang) {
   currentLang = lang;
+  try { localStorage.setItem('immba_lang', lang); } catch (e) { /* storage blocked */ }
   document.documentElement.lang = lang === 'zh' ? 'zh-TW' : 'en';
 
   // Toggle button styling
@@ -173,6 +174,27 @@ function initMenuCollapse() {
       if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
     }, 220);
   }, { passive: true });
+
+  // Arriving from another page with #section in the address: land on that section the same way a menu click does
+  const goToHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const el = id && document.getElementById(id);
+    if (!el) return;
+    navTarget = id;
+    navTime = Date.now();
+    // the browser may already have jumped there, so the scroll listener would not fire: slide the header away by hand
+    const farDown = el.getBoundingClientRect().top + window.scrollY > 160;
+    if (desktop.matches && !pinned && farDown) setCollapsed(true, true);
+    layout(!(desktop.matches && !pinned && farDown));
+    el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    setTimeout(() => { layout(); el.scrollIntoView({ behavior: 'instant', block: 'start' }); }, 450);
+  };
+  if (location.hash.length > 1) {
+    const t0 = Date.now();
+    goToHash();
+    // photos and fonts load after the first paint and move things: align again once they are in
+    window.addEventListener('load', () => { if (Date.now() - t0 < 6000) setTimeout(goToHash, 100); });
+  }
 }
 
 // Menu names stay visible for pages that are not built yet; clicking them does nothing
@@ -208,7 +230,9 @@ function initLanguage() {
   const enBtn = document.getElementById('btn-lang-en');
   if (zhBtn) zhBtn.addEventListener('click', () => setLanguage('zh'));
   if (enBtn) enBtn.addEventListener('click', () => setLanguage('en'));
-  setLanguage('zh');
+  let saved = 'zh';
+  try { saved = localStorage.getItem('immba_lang') === 'en' ? 'en' : 'zh'; } catch (e) { /* storage blocked */ }
+  setLanguage(saved);
 }
 
 // Render Statistics Ribbon
@@ -341,6 +365,12 @@ function renderAdmissions() {
     `).join('');
   }
 
+  const intl = document.getElementById('admission-intl');
+  if (intl) {
+    const d = imMBAData.admissions.international;
+    intl.innerHTML = `<p>${d[`info_${currentLang}`]}</p><p>${d[`scholarship_${currentLang}`]}</p>`;
+  }
+
   if (docsContainer) {
     docsContainer.innerHTML = imMBAData.admissions.domestic.docs.map((doc, idx) => `
       <li class="flex items-start gap-3 p-3 bg-white border border-slate-200 text-xs text-slate-800">
@@ -355,6 +385,8 @@ function renderAdmissions() {
 function renderCurriculum() {
   const container = document.getElementById('curriculum-grid');
   if (!container) return;
+  const req = document.getElementById('curriculum-requirements');
+  if (req) req.innerHTML = `<strong class="text-slate-900">${i18n[currentLang].cur_requirements_label}${currentLang === 'zh' ? '：' : ': '}</strong>${imMBAData.curriculum[`requirements_${currentLang}`]}`;
 
   container.innerHTML = imMBAData.curriculum.categories.map(cat => `
     <div class="bg-white border border-slate-200 p-6">
