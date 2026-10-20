@@ -376,31 +376,63 @@ function renderCurriculum() {
   `).join('');
 }
 
-// Render Faculty Directory
+// Render Faculty Directory: one professor per row, full-time first, then part-time
 function renderFaculty() {
-  const container = document.getElementById('faculty-grid');
+  const container = document.getElementById('faculty-list');
   if (!container) return;
+  const t = key => (i18n[currentLang] && i18n[currentLang][key]) || key;
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const ico = d => `<svg class="w-4 h-4 mt-0.5 shrink-0 text-burgundy" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="${d}"/></svg>`;
+  const ICON_MAIL = 'M3 8l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z';
+  const ICON_PHONE = 'M3 5a2 2 0 012-2h2.3a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.5 1.2l-1.6.8a11 11 0 005.3 5.3l.8-1.6a1 1 0 011.2-.5l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.7 21 3 14.3 3 6V5z';
+  const ICON_WEB = 'M12 21a9 9 0 100-18 9 9 0 000 18zM3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 010 18M12 3a14 14 0 000 18';
 
-  container.innerHTML = imMBAData.faculty.map(f => `
-    <div class="bg-white border border-slate-200 p-6 flex flex-col justify-between hover:border-burgundy/50 transition">
-      <div>
-        <div class="w-14 h-14 bg-slate-900 text-white font-serif font-bold rounded-none flex items-center justify-center text-lg mb-4">
-          ${f.name_en.split(' ').map(n=>n[0]).join('')}
+  const card = f => `
+    <article class="faculty-card group relative bg-white border border-slate-200 border-l-4 border-l-slate-200 transition duration-200 ease-out hover:-translate-y-1 hover:shadow-xl hover:border-burgundy hover:border-l-burgundy focus-within:border-burgundy focus-within:border-l-burgundy">
+      <div class="flex flex-col sm:flex-row">
+        <div class="sm:w-48 lg:w-56 shrink-0 bg-slate-100 h-72 sm:h-auto sm:self-stretch overflow-hidden">
+          <img src="${esc(f.image_url)}" alt="${esc(f.name)}" loading="lazy" class="w-full h-full min-h-[14rem] object-cover object-top">
         </div>
-        <h4 class="font-serif text-lg font-bold text-slate-900 mb-1">${f[`name_${currentLang}`]}</h4>
-        <div class="text-xs font-bold text-burgundy uppercase tracking-wider mb-2">${f[`title_${currentLang}`]}</div>
-        <p class="text-xs text-slate-500 mb-3 font-mono">🎓 ${f[`degree_${currentLang}`]}</p>
-        <div class="text-xs text-slate-600 leading-relaxed mb-4">
-          <strong class="text-slate-900 block mb-1 uppercase tracking-wider font-mono text-[10px]">${currentLang === 'zh' ? '研究專長' : 'Expertise'}</strong>
-          ${f[`expertise_${currentLang}`]}
+        <div class="flex-1 p-6 lg:p-8 min-w-0">
+          <h3 class="font-serif text-2xl font-bold text-slate-900 leading-tight">${esc(f.name)}</h3>
+          <div class="mt-1 text-xs font-bold text-burgundy uppercase tracking-wider">${esc(f.title)}</div>
+          <div class="mt-5 pt-5 border-t border-slate-200 grid lg:grid-cols-5 gap-x-10 gap-y-5">
+            <div class="lg:col-span-3 space-y-4">
+              <div>
+                <div class="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">${t('fac_education')}</div>
+                <p class="text-sm text-slate-700 leading-relaxed">${esc(f.education)}</p>
+              </div>
+              <div>
+                <div class="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">${t('fac_research')}</div>
+                <div class="flex flex-wrap gap-1.5">
+                  ${f.research_fields.split(',').map(x => x.trim()).filter(Boolean).map(x => `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs">${esc(x)}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+            <div class="lg:col-span-2">
+              <div class="font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">${t('fac_contact')}</div>
+              <ul class="space-y-2 text-sm text-slate-700">
+                ${f.email ? `<li class="flex gap-2.5">${ico(ICON_MAIL)}<a href="mailto:${esc(f.email)}" class="break-all hover:text-burgundy underline-offset-2 hover:underline">${esc(f.email)}</a></li>` : ''}
+                ${f.phone ? `<li class="flex gap-2.5">${ico(ICON_PHONE)}<span>${esc(f.phone)}</span></li>` : ''}
+                ${f.website ? `<li class="flex gap-2.5">${ico(ICON_WEB)}<a href="${esc(f.website)}" target="_blank" rel="noopener" class="break-all hover:text-burgundy underline-offset-2 hover:underline">${esc(f.website.replace(/^https?:\/\//, ''))}</a></li>` : ''}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500 font-mono space-y-1">
-        <div>📧 ${f.email}</div>
-        <div>📍 ${f.office}</div>
-      </div>
-    </div>
-  `).join('');
+    </article>`;
+
+  const group = (cat, key) => {
+    const rows = FACULTY_SEED.filter(f => f.category === cat).sort((a, b) => a.sort_order - b.sort_order);
+    if (!rows.length) return '';
+    return `
+      <h3 class="flex items-center gap-4 font-serif text-xl font-bold text-slate-900 mb-6 mt-10 first:mt-0">
+        <span>${t(key)}</span><span class="font-mono text-xs font-bold text-slate-400">${rows.length}</span><span class="flex-1 border-t border-slate-300"></span>
+      </h3>
+      <div class="space-y-5">${rows.map(card).join('')}</div>`;
+  };
+
+  container.innerHTML = group('Full-time', 'fac_fulltime') + group('Adjunct', 'fac_parttime');
 }
 
 // Render Global Partners with Images
