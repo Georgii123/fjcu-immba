@@ -89,16 +89,21 @@ section[id] {
 
 /* Collapsed header (desktop): only the top bar stays; language switch + Apply move into it */
 #top-spacer { height: var(--topbar-h, 43px); }
-/* The hero starts under the header, so the header can slide away without moving the page */
-#hero > div { padding-top: calc(var(--hdr-h, 0px) + 6rem); }
+/* The banner starts under the header, so it keeps room for the header while the menu is open.
+   When the menu is collapsed (desktop) that room is given back and the banner gets shorter:
+   --hero-top-h is set in app.js (0 while collapsed, the header height otherwise). */
+#hero > div:not([aria-hidden]) { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 6rem); }
 @media (min-width: 768px) {
-  #hero > div { padding-top: calc(var(--hdr-h, 0px) + 9rem); }
+  #hero > div:not([aria-hidden]) { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 9rem); }
 }
 /* Title banner on the inner pages (About, Admissions, Curriculum, Faculty) */
-.page-hero > div { padding-top: calc(var(--hdr-h, 0px) + 2.5rem); }
+.page-hero > div { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 2.5rem); }
 @media (min-width: 768px) {
-  .page-hero > div { padding-top: calc(var(--hdr-h, 0px) + 3.5rem); }
+  .page-hero > div { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 3.5rem); }
 }
+/* Shrink / grow smoothly, in step with the header sliding (animation only starts after the page has loaded) */
+html.menu-ready #hero > div:not([aria-hidden]),
+html.menu-ready .page-hero > div { transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 @media (min-width: 1024px) {
   #navbar {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0s;

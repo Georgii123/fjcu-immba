@@ -105,6 +105,23 @@ function initMenuCollapse() {
   let navTime = 0;
 
   // Heights used by the page layout and by anchor links
+  let heroTop = null;
+  function setHeroTop(next) {
+    next = Math.round(next);
+    if (heroTop === next) return;
+    const prev = heroTop;
+    heroTop = next;
+    const y = window.scrollY;
+    // At the top of the page the banner shrinks / grows smoothly (CSS transition)
+    if (prev === null || y <= 4) { root.style.setProperty('--hero-top-h', next + 'px'); return; }
+    // Scrolled down: change at once and move the scroll position by the same amount,
+    // so what the visitor is reading stays exactly where it is
+    root.classList.remove('menu-ready');
+    root.style.setProperty('--hero-top-h', next + 'px');
+    window.scrollTo({ top: Math.max(0, y + next - prev), behavior: 'instant' });
+    setTimeout(() => root.classList.add('menu-ready'), 60);
+  }
+
   function layout(visibleHeader) {
     const tb = topbar.offsetHeight;
     const hh = header.offsetHeight;
@@ -113,6 +130,10 @@ function initMenuCollapse() {
     // The header gets shorter when language + Apply move to the top bar, so only measure it
     // while it is open. Otherwise the hero text would jump up when the header slides away.
     if (!(collapsed && desktop.matches)) root.style.setProperty('--hdr-h', hh + 'px');
+    // The banner gives back the header's room when the menu is collapsed BY HAND, so it gets shorter.
+    // (When the menu hides by itself on scroll the banner is already scrolled away, so it is left alone.)
+    const full = parseFloat(root.style.getPropertyValue('--hdr-h')) || hh;
+    setHeroTop((collapsed && !autoCollapsed && desktop.matches) ? 0 : full);
     root.style.setProperty('--site-top-h', (tb + (show ? hh : 0)) + 'px');
   }
 
@@ -150,6 +171,7 @@ function initMenuCollapse() {
   if (window.ResizeObserver) { const ro = new ResizeObserver(() => layout()); ro.observe(topbar); ro.observe(header); }
   window.addEventListener('resize', () => layout());
   layout();
+  setTimeout(() => root.classList.add('menu-ready'), 150);
 
   // Menu click: work out where the header will be when the scroll ends, so the section lands exactly
   document.addEventListener('click', e => {
