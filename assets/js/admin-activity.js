@@ -32,6 +32,7 @@
   }
 
   const when = iso => iso ? new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '';
+  const whenShort = iso => iso ? new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 
   // A value shown in a sentence: short, readable, and never raw HTML
   function val(v) {
@@ -116,13 +117,13 @@
 
   function render() {
     const list = filtered(), shown = list.slice(0, limit);
-    $('a-rows').innerHTML = shown.map(h => `<tr>
-      <td class="px-4 py-3 align-top whitespace-nowrap text-slate-700">${esc(when(h.created_at))}</td>
-      <td class="px-4 py-3 align-top min-w-[12rem] break-words">${esc(h.admin_email)}</td>
-      <td class="px-4 py-3 align-top whitespace-nowrap">${esc(AREA[h.table_name] || h.table_name)}</td>
-      <td class="px-4 py-3 align-top"><span class="inline-block px-2 py-1 text-[11px] font-bold tracking-wider ${ACTION_STYLE[h.action] || ''}">${esc(h.action)}</span></td>
-      <td class="px-4 py-3 align-top">${esc(h.record_label)}</td>
-      <td class="px-4 py-3 align-top"><button type="button" data-see="${esc(h.id)}" class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-slate-300 hover:border-burgundy hover:text-burgundy transition">See</button></td></tr>`).join('');
+    $('a-rows').innerHTML = shown.map(h => `<tr class="odd:bg-white even:bg-slate-50/70 hover:bg-amber-50/60">
+      <td class="px-3 py-1.5 whitespace-nowrap text-slate-600 tabular-nums">${esc(whenShort(h.created_at))}</td>
+      <td class="px-3 py-1.5 max-w-[13rem] truncate" title="${esc(h.admin_email)}">${esc(h.admin_email)}</td>
+      <td class="px-3 py-1.5 whitespace-nowrap text-slate-600">${esc(AREA[h.table_name] || h.table_name)}</td>
+      <td class="px-3 py-1.5"><span class="inline-block px-1.5 py-0.5 text-[10px] font-bold tracking-wider ${ACTION_STYLE[h.action] || ''}">${esc(h.action)}</span></td>
+      <td class="px-3 py-1.5 max-w-[18rem] truncate font-medium" title="${esc(h.record_label)}">${esc(h.record_label)}</td>
+      <td class="px-3 py-1.5 text-right"><button type="button" data-see="${esc(h.id)}" class="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border border-slate-300 hover:border-burgundy hover:text-burgundy hover:bg-white transition">See</button></td></tr>`).join('');
     $('a-count').textContent = list.length === entries.length
       ? `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}${entries.length >= FETCH ? ' (the latest ' + FETCH + ')' : ''}`
       : `${list.length} of ${entries.length} entries match`;
