@@ -47,7 +47,11 @@
       <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1">Manage faculty</div>
-          <h2 class="font-serif text-3xl font-bold">Current Faculty List</h2>
+          <nav class="flex flex-wrap items-end gap-x-6 gap-y-2" aria-label="Back-office sections">
+            <a href="admin-news.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition">Announcements</a>
+            <a href="admin-faculty.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 border-b-4 border-burgundy pb-1" aria-current="page">Faculty</a>
+            <a href="admin-users.html" class="hidden font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition" data-super-only>Requests <span data-pending-badge class="hidden ml-1 align-middle px-2 py-0.5 bg-burgundy text-white rounded-full text-xs font-sans">&nbsp;</span></a>
+          </nav>
           <p class="text-sm text-slate-600 mt-1">Changes are saved in Supabase and appear on the website's Faculty section for every visitor. <span id="count-summary"></span></p>
         </div>
         <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
