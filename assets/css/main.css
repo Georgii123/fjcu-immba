@@ -101,6 +101,12 @@ section[id] {
 @media (min-width: 768px) {
   .page-hero > div { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 3.5rem); }
 }
+/* Home banner (desktop): always at least as tall as the screen under the top bar, so no white strip shows
+   below it when the menu is collapsed. The text stays centred in the banner. */
+@media (min-width: 1024px) {
+  #hero { display: flex; flex-direction: column; justify-content: center; min-height: calc(100vh - var(--topbar-h, 43px)); min-height: calc(100svh - var(--topbar-h, 43px)); }
+  #hero > div:not([aria-hidden]) { width: 100%; }
+}
 /* Shrink / grow smoothly, in step with the header sliding (animation only starts after the page has loaded) */
 html.menu-ready #hero > div:not([aria-hidden]),
 html.menu-ready .page-hero > div { transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -118,7 +124,7 @@ html.menu-ready .page-hero > div { transition: padding-top 0.4s cubic-bezier(0.4
 @media (prefers-reduced-motion: reduce) {
   #navbar, #navbar.is-collapsed { transition: none; }
 }
-#topbar-slot #nav-actions { gap: 0.5rem; margin-left: 0; }
+#topbar-slot #nav-actions { gap: 0.5rem; margin-left: 0; flex-direction: row-reverse; }   /* collapsed bar, right to left: collapse button, language, Apply */
 #topbar-slot #nav-actions a { padding: 0.25rem 0.75rem; }
 #topbar-slot #nav-actions button { padding-top: 0.125rem; padding-bottom: 0.125rem; }
 #topbar-slot #nav-actions a { background: #800020; }

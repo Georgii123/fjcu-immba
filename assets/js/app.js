@@ -114,11 +114,14 @@ function initMenuCollapse() {
     const y = window.scrollY;
     // At the top of the page the banner shrinks / grows smoothly (CSS transition)
     if (prev === null || y <= 4) { root.style.setProperty('--hero-top-h', next + 'px'); return; }
-    // Scrolled down: change at once and move the scroll position by the same amount,
-    // so what the visitor is reading stays exactly where it is
+    // Scrolled down: change at once and move the scroll position by however much the banner really
+    // changed in height, so what the visitor is reading stays exactly where it is
+    const banner = document.querySelector('#hero, .page-hero');
+    const before = banner ? banner.offsetHeight : 0;
     root.classList.remove('menu-ready');
     root.style.setProperty('--hero-top-h', next + 'px');
-    window.scrollTo({ top: Math.max(0, y + next - prev), behavior: 'instant' });
+    const after = banner ? banner.offsetHeight : 0;
+    window.scrollTo({ top: Math.max(0, y + after - before), behavior: 'instant' });
     setTimeout(() => root.classList.add('menu-ready'), 60);
   }
 
