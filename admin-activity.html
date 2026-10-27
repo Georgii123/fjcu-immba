@@ -96,6 +96,18 @@
     </div>
   </main>
 
+  <!-- Entry details popup -->
+  <div id="entry-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="entry-title">
+    <div class="bg-white w-full max-w-3xl mt-10 p-6 sm:p-8">
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <h3 id="entry-title" class="font-serif text-2xl font-bold">What changed</h3>
+        <button id="entry-close" type="button" class="text-slate-400 hover:text-slate-800 text-2xl leading-none px-2" aria-label="Close">&times;</button>
+      </div>
+      <div id="entry-body" class="text-sm"></div>
+      <div class="mt-6 text-right"><button id="entry-close2" type="button" class="px-6 py-2.5 border border-slate-300 hover:border-slate-500 text-xs font-bold uppercase tracking-wider transition">Close</button></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/admin-auth.js"></script>

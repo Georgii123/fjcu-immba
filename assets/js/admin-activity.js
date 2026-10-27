@@ -59,6 +59,33 @@
     return keys.map(k => `${labels[k]}: ${val(ch[k][0])} → ${val(ch[k][1])}`).join('; ');
   }
 
+  const fullVal = v => (v == null || v === '') ? '(empty)' : v === true ? 'yes' : v === false ? 'no' : String(v);
+  const cell = v => `<td class="px-3 py-2 align-top whitespace-pre-wrap break-words">${esc(fullVal(v))}</td>`;
+
+  // The popup: who, when, which record, then every field that changed with its full old and new value
+  function openEntry(id) {
+    const h = entries.find(e => String(e.id) === String(id));
+    if (!h) return;
+    const labels = FIELD[h.table_name] || {}, ch = h.changes || {};
+    const keys = Object.keys(ch).filter(k => labels[k]);
+    const meta = [['When', when(h.created_at)], ['Admin', h.admin_email], ['Area', AREA[h.table_name] || h.table_name], ['Action', h.action],
+      ['Record', h.record_label], ['Source', h.source && h.source !== 'manual' ? h.source : 'Entered by hand']];
+    const head = (...c) => `<thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600"><tr>${c.map(x => `<th class="px-3 py-2 font-bold">${x}</th>`).join('')}</tr></thead>`;
+    let table = '';
+    if (keys.length) {
+      if (h.action === 'CREATE') table = head('Field', 'Value') + '<tbody class="divide-y divide-slate-200">' + keys.map(k => `<tr><td class="px-3 py-2 align-top font-bold whitespace-nowrap">${esc(labels[k])}</td>${cell(ch[k][1])}</tr>`).join('') + '</tbody>';
+      else if (h.action === 'DELETE') table = head('Field', 'Value that was deleted') + '<tbody class="divide-y divide-slate-200">' + keys.map(k => `<tr><td class="px-3 py-2 align-top font-bold whitespace-nowrap">${esc(labels[k])}</td>${cell(ch[k][0])}</tr>`).join('') + '</tbody>';
+      else table = head('Field', 'Before', 'After') + '<tbody class="divide-y divide-slate-200">' + keys.map(k => `<tr><td class="px-3 py-2 align-top font-bold whitespace-nowrap">${esc(labels[k])}</td>${cell(ch[k][0])}${cell(ch[k][1])}</tr>`).join('') + '</tbody>';
+    }
+    $('entry-body').innerHTML = `
+      <dl class="grid grid-cols-[6rem_1fr] gap-x-4 gap-y-1 mb-4">${meta.map(([k, v]) => `<dt class="font-bold text-slate-600">${k}</dt><dd class="break-words">${esc(v)}</dd>`).join('')}</dl>
+      <p class="mb-3 font-semibold">${esc(['UPDATE', 'CREATE'].includes(h.action) && keys.length ? (h.action === 'CREATE' ? 'New record with these values:' : 'Changed fields:') : describe(h).split('. It contained')[0])}</p>
+      ${table ? `<div class="overflow-x-auto border border-slate-200"><table class="w-full text-left">${table}</table></div>` : ''}`;
+    $('entry-modal').classList.remove('hidden');
+    $('entry-close2').focus();
+  }
+  const closeEntry = () => $('entry-modal').classList.add('hidden');
+
   async function load() {
     const { data, error } = await sb.from('audit_log').select('*')
       .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(FETCH);
@@ -95,7 +122,7 @@
       <td class="px-4 py-3 align-top whitespace-nowrap">${esc(AREA[h.table_name] || h.table_name)}</td>
       <td class="px-4 py-3 align-top"><span class="inline-block px-2 py-1 text-[11px] font-bold tracking-wider ${ACTION_STYLE[h.action] || ''}">${esc(h.action)}</span></td>
       <td class="px-4 py-3 align-top">${esc(h.record_label)}</td>
-      <td class="px-4 py-3 align-top text-slate-700 min-w-[20rem]">${esc(describe(h))}${h.source && h.source !== 'manual' ? `<div class="text-xs text-slate-500 mt-0.5">${esc(h.source)}</div>` : ''}</td></tr>`).join('');
+      <td class="px-4 py-3 align-top"><button type="button" data-see="${esc(h.id)}" class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-slate-300 hover:border-burgundy hover:text-burgundy transition">See</button></td></tr>`).join('');
     $('a-count').textContent = list.length === entries.length
       ? `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}${entries.length >= FETCH ? ' (the latest ' + FETCH + ')' : ''}`
       : `${list.length} of ${entries.length} entries match`;
@@ -116,6 +143,11 @@
     $('a-clear').addEventListener('click', () => { ['a-area', 'a-action', 'a-admin', 'a-q', 'a-from', 'a-to'].forEach(id => { $(id).value = ''; }); refilter(); });
     $('a-refresh').addEventListener('click', reload);
     $('a-more').addEventListener('click', () => { limit += PAGE; render(); });
+    $('a-rows').addEventListener('click', e => { const b = e.target.closest('button[data-see]'); if (b) openEntry(b.dataset.see); });
+    $('entry-close').addEventListener('click', closeEntry);
+    $('entry-close2').addEventListener('click', closeEntry);
+    $('entry-modal').addEventListener('click', e => { if (e.target === $('entry-modal')) closeEntry(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEntry(); });
     $('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
   }
 
