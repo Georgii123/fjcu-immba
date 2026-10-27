@@ -20,6 +20,21 @@ const AdminAuth = (() => {
   const LABEL = 'block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1';
   const LINK = 'font-bold text-burgundy hover:underline';
 
+  // Eye button inside a password box: click to show the password, click again to hide it
+  const EYE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  const pwInput = (id, autocomplete) => `<div class="relative">
+            <input id="${id}" type="password" class="${FIELD} pr-11" autocomplete="${autocomplete}">
+            <button type="button" data-eye="${id}" class="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-slate-500 hover:text-burgundy focus:outline-none focus-visible:text-burgundy" aria-label="Show password" aria-pressed="false">${EYE}</button>
+          </div>`;
+  function setEye(btn, show) {
+    const input = $(btn.dataset.eye);
+    input.type = show ? 'text' : 'password';
+    btn.innerHTML = show ? EYE_OFF : EYE;
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    btn.setAttribute('aria-pressed', String(show));
+  }
+
   const TEXT = {
     login:    { title: 'Admin login',            help: () => `Sign in with your admin email and password to manage ${area}.`, submit: 'Log in' },
     register: { title: 'Register',               help: () => 'Ask for back-office access. Confirm your email, then wait for the site owner to approve your request. Choose a password of at least 6 characters.', submit: 'Create account' },
@@ -37,9 +52,9 @@ const AdminAuth = (() => {
         <div id="wrap-email"><label for="auth-email" class="${LABEL}">Email</label>
           <input id="auth-email" type="email" class="${FIELD}" autocomplete="username"></div>
         <div id="wrap-pw"><label for="auth-pw" id="auth-pw-label" class="${LABEL}">Password</label>
-          <input id="auth-pw" type="password" class="${FIELD}" autocomplete="current-password"></div>
+          ${pwInput('auth-pw', 'current-password')}</div>
         <div id="wrap-pw2" class="hidden"><label for="auth-pw2" class="${LABEL}">Confirm password</label>
-          <input id="auth-pw2" type="password" class="${FIELD}" autocomplete="new-password"></div>
+          ${pwInput('auth-pw2', 'new-password')}</div>
         <p id="auth-error" class="text-sm text-red-700 hidden" role="alert"></p>
         <p id="auth-info" class="text-sm text-green-800 hidden" role="status"></p>
         <button type="submit" id="auth-submit" class="w-full py-3 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-widest transition"></button>
@@ -49,6 +64,10 @@ const AdminAuth = (() => {
         Only approved people can use the back office. A new account stays "pending" until the site owner approves it.
       </p>`;
     $('auth-form').addEventListener('submit', onSubmit);
+    $('auth-form').addEventListener('click', e => {
+      const b = e.target.closest('button[data-eye]');
+      if (b) setEye(b, $(b.dataset.eye).type === 'password');
+    });
     $('auth-links').addEventListener('click', e => {
       const b = e.target.closest('button[data-mode]');
       if (b) setMode(b.dataset.mode);
@@ -74,6 +93,7 @@ const AdminAuth = (() => {
       : btn('login', 'Back to log in');
     if (!keepMessages) { $('auth-error').classList.add('hidden'); $('auth-info').classList.add('hidden'); }
     $('auth-pw').value = ''; $('auth-pw2').value = '';
+    document.querySelectorAll('#auth-form button[data-eye]').forEach(b => setEye(b, false));
   }
 
   const showError = msg => { $('auth-error').textContent = msg; $('auth-error').classList.remove('hidden'); $('auth-info').classList.add('hidden'); };
