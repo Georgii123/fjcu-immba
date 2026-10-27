@@ -116,7 +116,7 @@ function initMenuCollapse() {
     if (prev === null || y <= 4) { root.style.setProperty('--hero-top-h', next + 'px'); return; }
     // Scrolled down: change at once and move the scroll position by however much the banner really
     // changed in height, so what the visitor is reading stays exactly where it is
-    const banner = document.querySelector('#hero, .page-hero');
+    const banner = document.querySelector('#hero, .page-top-spacer');
     const before = banner ? banner.offsetHeight : 0;
     root.classList.remove('menu-ready');
     root.style.setProperty('--hero-top-h', next + 'px');

@@ -96,11 +96,9 @@ section[id] {
 @media (min-width: 768px) {
   #hero > div:not([aria-hidden]) { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 9rem); }
 }
-/* Title banner on the inner pages (About, Admissions, Curriculum, Faculty) */
-.page-hero > div { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 2.5rem); }
-@media (min-width: 768px) {
-  .page-hero > div { padding-top: calc(var(--hero-top-h, var(--hdr-h, 0px)) + 3.5rem); }
-}
+/* Inner pages have no title banner: this spacer keeps the content clear of the header while the menu is open
+   and gives that room back when the menu is collapsed by hand (same logic as the home banner). */
+.page-top-spacer { height: var(--hero-top-h, var(--hdr-h, 0px)); }
 /* Home banner (desktop): always at least as tall as the screen under the top bar, so no white strip shows
    below it when the menu is collapsed. The text stays centred in the banner. */
 @media (min-width: 1024px) {
@@ -108,8 +106,8 @@ section[id] {
   #hero > div:not([aria-hidden]) { width: 100%; }
 }
 /* Shrink / grow smoothly, in step with the header sliding (animation only starts after the page has loaded) */
-html.menu-ready #hero > div:not([aria-hidden]),
-html.menu-ready .page-hero > div { transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+html.menu-ready #hero > div:not([aria-hidden]) { transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+html.menu-ready .page-top-spacer { transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 @media (min-width: 1024px) {
   #navbar {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0s;
