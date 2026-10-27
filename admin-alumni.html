@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>AdminAlumni | imMBA Back-Office</title>
+  <title>Alumni | imMBA Back-Office</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/css/main.css">
@@ -21,10 +21,11 @@
         <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
         <div class="min-w-0">
           <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">imMBA Back-Office</div>
-          <h1 class="font-serif text-lg font-bold leading-tight truncate">AdminAlumni</h1>
+          <h1 class="font-serif text-lg font-bold leading-tight truncate">Alumni</h1>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-3 text-xs font-bold">
+        <a href="index.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">&larr; Back to website</a>
         <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
         <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
       </div>
@@ -103,25 +104,25 @@
       <!-- Views -->
       <div id="views" class="flex flex-wrap gap-2 mb-4 text-xs font-bold" role="tablist" aria-label="Alumni views"></div>
 
-      <!-- Filters -->
-      <div id="filters" class="mb-4 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div class="lg:col-span-2"><label for="f-q" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Search name, ID or email</label>
-          <input id="f-q" type="search" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" placeholder="Type to search"></div>
-        <div><label for="f-degree" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Degree level</label>
+      <!-- Filters (one line on wide screens) -->
+      <div id="filters" class="mb-4 flex flex-wrap items-end gap-3">
+        <div class="w-48"><label for="f-q" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Search name, ID or email</label>
+          <input id="f-q" type="search" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy" placeholder="Type to search"></div>
+        <div class="w-32"><label for="f-degree" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Degree level</label>
           <select id="f-degree" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy"></select></div>
-        <div><label for="f-year" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Graduation year</label>
+        <div class="w-36"><label for="f-year" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Graduation year</label>
           <select id="f-year" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy"></select></div>
-        <div><label for="f-dept" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Department</label>
+        <div class="w-40"><label for="f-dept" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Department</label>
           <select id="f-dept" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy"></select></div>
-        <div class="lg:col-span-2"><label for="f-company" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Company</label>
-          <input id="f-company" type="search" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" placeholder="Part of a company name"></div>
-        <div class="lg:col-span-3 flex flex-wrap items-end gap-3 text-xs font-bold">
-          <button id="btn-clear" type="button" class="px-4 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Clear filters</button>
+        <div class="w-40"><label for="f-company" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Company</label>
+          <input id="f-company" type="search" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy" placeholder="Part of a name"></div>
+        <div class="flex items-end gap-3 text-xs font-bold">
+          <button id="btn-clear" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Clear filters</button>
           <div class="relative">
-            <button id="btn-columns" type="button" class="px-4 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition" aria-expanded="false" aria-controls="columns-menu">Columns &#9662;</button>
+            <button id="btn-columns" type="button" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy transition" aria-expanded="false" aria-controls="columns-menu">Columns &#9662;</button>
             <div id="columns-menu" class="hidden absolute z-20 mt-1 w-64 bg-white border border-slate-300 shadow-lg p-3 text-sm font-normal"></div>
           </div>
-          <span id="count-summary" class="text-slate-600 font-normal pb-2"></span>
+          <span id="count-summary" class="text-slate-600 font-normal text-sm pb-2.5 whitespace-nowrap"></span>
         </div>
       </div>
 
