@@ -1,0 +1,11 @@
+﻿full_name,student_id,department,degree_program,admission_year,graduation_year,email,phone,company,job_title,notes
+Sophie Chen,F20190001,Department of Business Administration,Bachelor,2015,2019,sophie.chen@example.com,0911-100-001,Demo Trading Co.,Sales Associate,Made-up sample person
+Marcus Liao,F20190002,Department of Finance,Bachelor,2015,2019,marcus.liao@example.com,0911-100-002,Sample Securities,Junior Analyst,
+Vivian Hsieh,F20200001,Department of Economics,Bachelor,2016,2020,vivian.hsieh@example.com,0911-100-003,Example Think Tank,Research Assistant,
+Daniel Fang,G20210001,International Management MBA,Master,2019,2021,daniel.fang@example.com,0922-200-001,Fictional Shipping Ltd.,Regional Manager,
+Tina Ko,G20220001,Department of Information Management,Master,2020,2022,tina.ko@example.com,0922-200-002,Sample Software Inc.,Data Engineer,
+Ethan Pai,G20230001,Department of Statistics and Information Science,Master,2021,2023,ethan.pai@example.com,0922-200-003,Demo Analytics,Data Scientist,"Thesis on demand forecasting, supervised by a made-up advisor"
+林雅婷,G20240001,Department of Accounting,Master,2022,2024,yating.lin@example.com,0922-200-004,範例會計事務所,審計師,虛構的範例資料
+Oscar Tang,H20200001,PhD Program in Management,Doctoral,2015,2020,oscar.tang@example.com,0933-300-001,Sample University,Associate Professor,
+Helen Shih,H20220001,PhD Program in Finance,Doctoral,2017,2022,helen.shih@example.com,0933-300-002,Example Research Institute,Senior Researcher,
+Victor Yu,H20240001,PhD Program in Information Management,Doctoral,2019,2024,victor.yu@example.com,0933-300-003,Demo Technology Lab,Research Scientist,
