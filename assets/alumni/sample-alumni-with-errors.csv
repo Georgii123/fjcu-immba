@@ -1,9 +1,0 @@
-﻿full_name,student_id,department,degree_program,admission_year,graduation_year,email,phone,company,job_title,notes
-Mia Chou,E20250001,International Management MBA,Master,2023,2025,mia.chou@example.com,0900-000-021,Example Co.,Planner,Good row
-Nick Ho,E20250002,International Management MBA,M.B.A.,2023,2025,nick.ho@example.com,0900-000-022,Example Co.,Planner,Wrong degree value
-,E20250003,International Management MBA,Master,2023,2025,noname@example.com,0900-000-023,Example Co.,Planner,Missing name
-Olivia Ma,E20250001,International Management MBA,Master,2023,2025,olivia.ma@example.com,0900-000-024,Example Co.,Planner,Duplicate of the first row's ID
-Paul Sun,E20250005,International Management MBA,Master,2023,2025,not-an-email,0900-000-025,Example Co.,Planner,Bad email
-Quinn Yeh,E20250006,International Management MBA,Master,2025,2023,quinn.yeh@example.com,0900-000-026,Example Co.,Planner,Graduated before admission
-,,,,,,,,,,
-Rita Pan,E20250007,International Management MBA,Master,2023,2025,rita.pan@example.com,0900-000-027,Example Co.,Planner,Good row
