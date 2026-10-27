@@ -438,9 +438,8 @@ function renderAdmissions() {
   const docsContainer = document.getElementById('admission-docs');
 
   if (tracksContainer) {
-    tracksContainer.innerHTML = imMBAData.admissions.domestic.tracks.map((t, i) => `
+    tracksContainer.innerHTML = imMBAData.admissions.domestic.tracks.map(t => `
       <div class="bg-white p-8 border border-slate-200 border-t-2 border-t-burgundy hover:border-burgundy/40 transition duration-300">
-        <div class="font-serif text-3xl font-bold text-burgundy mb-3">${String(i + 1).padStart(2, '0')}</div>
         <h4 class="font-serif text-xl font-bold text-slate-900 mb-2">${t[`name_${currentLang}`]}</h4>
         <p class="text-sm text-slate-600 mb-5">${t[`time_${currentLang}`]}</p>
         <div class="space-y-2 text-sm text-slate-600 border-t border-slate-200 pt-4">
@@ -459,8 +458,8 @@ function renderAdmissions() {
 
   if (docsContainer) {
     docsContainer.innerHTML = imMBAData.admissions.domestic.docs.map((doc, idx) => `
-      <li class="bg-white p-6 border border-slate-200 hover:border-burgundy/40 transition duration-300">
-        <div class="font-serif text-2xl font-bold text-burgundy mb-2">${String(idx + 1).padStart(2, '0')}</div>
+      <li class="flex items-baseline gap-4 bg-white px-6 py-5 border border-slate-200 hover:border-burgundy/40 transition duration-300">
+        <span class="font-serif text-2xl font-bold text-burgundy shrink-0 lining-nums">${String(idx + 1).padStart(2, '0')}</span>
         <p class="text-base font-medium text-slate-900 leading-snug">${doc[`name_${currentLang}`]}</p>
       </li>
     `).join('');
