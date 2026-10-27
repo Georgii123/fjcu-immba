@@ -149,7 +149,7 @@
     const rows = $('news-rows');
     $('empty-msg').classList.toggle('hidden', records.length > 0);
     const pub = records.filter(r => r.status === 'published').length;
-    $('count-summary').textContent = `${records.length} total, ${pub} published, ${records.length - pub} draft.`;
+    if ($('count-summary')) $('count-summary').textContent = `${records.length} total, ${pub} published, ${records.length - pub} draft.`;
 
     rows.innerHTML = records.map(r => {
       const sync = syncReport(r);

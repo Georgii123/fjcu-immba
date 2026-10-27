@@ -121,7 +121,7 @@
   }
 
   function renderList() {
-    $('count-summary').textContent = people.length ? `(${people.length} in total)` : '';
+    if ($('count-summary')) $('count-summary').textContent = people.length ? `(${people.length} in total)` : '';
     $('empty-msg').classList.toggle('hidden', people.length > 0);
     const box = $('faculty-groups');
     box.innerHTML = CATEGORIES.map(cat => {
