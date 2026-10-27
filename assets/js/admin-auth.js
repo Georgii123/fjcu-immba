@@ -1,18 +1,20 @@
 /**
  * AdminAuth: the login box shared by AdminNews and AdminFaculty.
  * Modes: log in, register, forgot password, and "choose a new password" (after the reset email link).
- * Registration only works for emails on the admin list: Supabase checks that on its server (see supabase/schema.sql),
- * so nothing here can be bypassed. Even a registered account can only change data if its email is on that list.
+ * Anyone may register, but a new account is 'pending' (table public.profiles, see supabase/schema.sql) and can do
+ * nothing until the super admin approves it on AdminRequests. After every login this file checks that role:
+ * only 'admin' / 'super_admin' reach the page; pending and rejected people see a status message instead.
+ * The database enforces the same rule (row-level security), so this screen is a convenience, not the lock.
  *
- *   AdminAuth.init({ sb, area: 'announcements', onSession(session) })
- * The page needs <section id="auth"> (this file fills it in).
+ *   AdminAuth.init({ sb, area: 'announcements', onSession(session, profile), requireSuper: false })
+ * The page needs <section id="auth"> (this file fills it in). Elements marked data-super-only are shown to the super admin.
  */
 // Read before supabase-js tidies the address bar: did the person arrive from a reset-password email?
 const ARRIVED_FOR_RECOVERY = /type=recovery/.test(location.hash + location.search);
 
 const AdminAuth = (() => {
   const $ = id => document.getElementById(id);
-  let sb = null, onSession = null, area = '', mode = 'login', recovering = false;
+  let sb = null, onSession = null, area = '', mode = 'login', recovering = false, requireSuper = false;
 
   const FIELD = 'w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy';
   const LABEL = 'block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1';
@@ -20,7 +22,7 @@ const AdminAuth = (() => {
 
   const TEXT = {
     login:    { title: 'Admin login',            help: () => `Sign in with your admin email and password to manage ${area}.`, submit: 'Log in' },
-    register: { title: 'Register',               help: () => 'Only approved emails can register. Choose a password (at least 6 characters). You will get an email to confirm the address.', submit: 'Create account' },
+    register: { title: 'Register',               help: () => 'Ask for back-office access. Confirm your email, then wait for the site owner to approve your request. Choose a password of at least 6 characters.', submit: 'Create account' },
     forgot:   { title: 'Forgot password',  help: () => 'Enter your email and we will send you a link to choose a new password.', submit: 'Send reset link' },
     reset:    { title: 'Choose a new password',  help: () => 'Type the new password twice, then save it.', submit: 'Save new password' }
   };
@@ -30,6 +32,8 @@ const AdminAuth = (() => {
       <h2 id="auth-title" class="font-serif text-2xl font-bold mb-2"></h2>
       <p id="auth-help" class="text-sm text-slate-600 mb-6"></p>
       <form id="auth-form" class="space-y-4" novalidate>
+        <div id="wrap-name" class="hidden"><label for="auth-name" class="${LABEL}">Full name</label>
+          <input id="auth-name" type="text" class="${FIELD}" autocomplete="name" maxlength="80"></div>
         <div id="wrap-email"><label for="auth-email" class="${LABEL}">Email</label>
           <input id="auth-email" type="email" class="${FIELD}" autocomplete="username"></div>
         <div id="wrap-pw"><label for="auth-pw" id="auth-pw-label" class="${LABEL}">Password</label>
@@ -42,7 +46,7 @@ const AdminAuth = (() => {
       </form>
       <p class="text-sm text-slate-600 mt-5 flex flex-wrap justify-center gap-x-8 gap-y-2" id="auth-links"></p>
       <p class="text-[11px] text-slate-500 mt-6 leading-relaxed">
-        Only authorised people can use the back office. New accounts are accepted only for approved emails.
+        Only approved people can use the back office. A new account stays "pending" until the site owner approves it.
       </p>`;
     $('auth-form').addEventListener('submit', onSubmit);
     $('auth-links').addEventListener('click', e => {
@@ -57,6 +61,7 @@ const AdminAuth = (() => {
     $('auth-title').textContent = t.title;
     $('auth-help').textContent = t.help();
     $('auth-submit').textContent = t.submit;
+    $('wrap-name').classList.toggle('hidden', next !== 'register');
     $('wrap-email').classList.toggle('hidden', next === 'reset');
     $('wrap-pw').classList.toggle('hidden', next === 'forgot');
     $('wrap-pw2').classList.toggle('hidden', next !== 'register' && next !== 'reset');
@@ -77,7 +82,6 @@ const AdminAuth = (() => {
   function friendly(ex) {
     const msg = (ex && (ex.message || ex.error_description)) || String(ex);
     if (/Invalid login credentials/i.test(msg)) return 'Wrong email or password (or the email is not confirmed yet).';
-    if (/not authori[sz]ed|not on the approved|hook|Database error saving new user/i.test(msg)) return 'This email is not on the approved list. Ask the site owner to add it, then try again.';
     if (/rate limit|too many/i.test(msg)) return 'Too many tries. Wait a few minutes and try again.';
     if (/Failed to fetch|NetworkError|network/i.test(msg)) return 'Cannot reach the server. Check your internet connection and try again.';
     if (/same password|different from the old/i.test(msg)) return 'Choose a password you have not used before.';
@@ -90,7 +94,9 @@ const AdminAuth = (() => {
     $('auth-error').classList.add('hidden'); $('auth-info').classList.add('hidden');
     const email = $('auth-email').value.trim();
     const pw = $('auth-pw').value, pw2 = $('auth-pw2').value;
+    const name = $('auth-name').value.trim().replace(/\s+/g, ' ');
     const needEmail = mode !== 'reset';
+    if (mode === 'register' && name.length < 2) return showError('Enter your full name, so the site owner knows who is asking.');
     if (needEmail && !/^\S+@\S+\.\S+$/.test(email)) return showError('Enter a valid email address.');
     if (mode !== 'forgot' && !pw) return showError(mode === 'login' ? 'Enter your password.' : 'Choose a password.');
     if ((mode === 'register' || mode === 'reset') && pw.length < 6) return showError('Use at least 6 characters.');
@@ -102,16 +108,16 @@ const AdminAuth = (() => {
       if (mode === 'login') {
         const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
         if (error) throw error;
-        await onSession(data.session);
+        await enter(data.session);
       } else if (mode === 'register') {
-        const { data, error } = await sb.auth.signUp({ email, password: pw, options: { emailRedirectTo: back } });
+        const { data, error } = await sb.auth.signUp({ email, password: pw, options: { emailRedirectTo: back, data: { full_name: name } } });
         if (error) throw error;
-        if (data && data.session) return onSession(data.session);
+        if (data && data.session) return enter(data.session);
         if (data && data.user && data.user.identities && data.user.identities.length === 0) {
           setMode('login'); return showInfo('This email already has an account. Log in, or use "Forgot password".');
         }
         setMode('login');
-        showInfo('Account created. Open the confirmation email we just sent, click the link, then come back here and log in.');
+        showInfo('Request sent. Open the confirmation email we just sent and click the link. Then log in: you will see "waiting for approval" until the site owner approves you.');
       } else if (mode === 'forgot') {
         const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: back });
         if (error) throw error;
@@ -123,15 +129,66 @@ const AdminAuth = (() => {
         recovering = false;
         history.replaceState(null, '', location.pathname);
         const { data: s } = await sb.auth.getSession();
-        await onSession(s && s.session);
+        await enter(s && s.session);
       }
     } catch (ex) {
       showError(friendly(ex));
     } finally { btn.disabled = false; }
   }
 
+  // A status screen for people who are signed in but may not use the back office (yet).
+  function showStatus(title, text, backLink) {
+    const box = $('auth');
+    box.classList.remove('hidden');
+    box.innerHTML = `
+      <h2 class="font-serif text-2xl font-bold mb-2">${title}</h2>
+      <p class="text-sm text-slate-600 mb-6">${text}</p>
+      <div class="flex flex-wrap gap-3">
+        ${backLink ? `<a href="${backLink[0]}" class="px-4 py-2.5 border border-slate-300 hover:border-burgundy hover:text-burgundy text-xs font-bold uppercase tracking-wider transition">${backLink[1]}</a>` : ''}
+        <button type="button" id="auth-signout" class="px-4 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition">Log out</button>
+      </div>`;
+    $('auth-signout').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+  }
+
+  // After a successful login: look up the person's role and decide what they may open.
+  async function enter(session) {
+    if (!session) return $('auth').classList.remove('hidden');
+    let profile = null;
+    try {
+      const { data, error } = await sb.from('profiles').select('user_id, email, full_name, role').eq('user_id', session.user.id).maybeSingle();
+      if (error) throw error;
+      profile = data;
+    } catch (ex) {
+      return showStatus('Could not check your access', friendly(ex));
+    }
+    const role = profile ? profile.role : 'pending';
+    if (role === 'rejected') {
+      return showStatus('Access not granted', 'Your request for back-office access was not approved. If you think this is a mistake, contact the site owner.');
+    }
+    if (role !== 'admin' && role !== 'super_admin') {
+      return showStatus('Waiting for approval', 'Your email is confirmed and your request has been received. The site owner must approve it before you can use the back office. Try again later.');
+    }
+    if (requireSuper && role !== 'super_admin') {
+      return showStatus('Super admin only', 'This page is only for the super admin. You can still use the other back-office pages.', ['admin-news.html', 'Go to AdminNews']);
+    }
+    if (role === 'super_admin') {
+      document.querySelectorAll('[data-super-only]').forEach(el => el.classList.remove('hidden'));
+      countPending();
+    }
+    await onSession(session, profile);
+  }
+
+  // Super admin only: show how many requests are waiting, next to the "Admin requests" link.
+  async function countPending() {
+    try {
+      const { count, error } = await sb.from('profiles').select('user_id', { count: 'exact', head: true }).eq('role', 'pending');
+      if (error || !count) return;
+      document.querySelectorAll('[data-pending-badge]').forEach(el => { el.textContent = count; el.classList.remove('hidden'); });
+    } catch (e) { /* the badge is only a hint */ }
+  }
+
   async function init(opts) {
-    sb = opts.sb; onSession = opts.onSession; area = opts.area || 'the website';
+    sb = opts.sb; onSession = opts.onSession; area = opts.area || 'the website'; requireSuper = !!opts.requireSuper;
     render();
     setMode('login');
 
@@ -151,7 +208,7 @@ const AdminAuth = (() => {
       if (mode !== 'reset') setMode('reset');
       return;
     }
-    if (data && data.session) return onSession(data.session);
+    if (data && data.session) return enter(data.session);
     $('auth').classList.remove('hidden');
   }
 

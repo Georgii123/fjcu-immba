@@ -18,7 +18,7 @@ create table if not exists public.announcements (
   updated_at timestamptz not null default now()
 );
 
--- Who may edit: emails listed here, and confirmed in Supabase Auth
+-- Who may edit (first version; replaced by the profiles table at the end of this file): emails listed here, confirmed in Supabase Auth
 create table if not exists public.admin_emails (email text primary key);
 alter table public.admin_emails enable row level security;   -- no policies: not readable through the API
 insert into public.admin_emails (email) values ('ADMIN_EMAIL_HERE') on conflict do nothing;
@@ -121,6 +121,118 @@ begin
     return '{}'::jsonb;
   end if;
   return jsonb_build_object('error', jsonb_build_object('message', 'This email is not authorised to register.', 'http_code', 403));
+end;
+$$;
+revoke all on function public.hook_only_approved_emails(jsonb) from public, anon, authenticated;
+grant execute on function public.hook_only_approved_emails(jsonb) to supabase_auth_admin;
+
+-- ---------------------------------------------------------------------------
+-- Multi-admin approval (assignment #7). Anyone may register; a new account starts as 'pending' and can do
+-- nothing until the super admin approves it. Roles: pending -> admin (or rejected). The super admin is whoever is
+-- listed in admin_emails (that table is now the SUPER ADMIN list).
+-- ---------------------------------------------------------------------------
+create table if not exists public.profiles (
+  user_id           uuid primary key references auth.users(id) on delete cascade,
+  email             text not null,
+  full_name         text not null default '',
+  role              text not null default 'pending' check (role in ('pending','admin','super_admin','rejected')),
+  email_verified    boolean not null default false,
+  created_at        timestamptz not null default now(),
+  reviewed_by       text,
+  reviewed_at       timestamptz
+);
+alter table public.profiles enable row level security;
+
+-- Existing accounts: the super admin list becomes super_admin, everyone else starts as pending
+insert into public.profiles (user_id, email, full_name, role, email_verified, created_at)
+select u.id, u.email, coalesce(u.raw_user_meta_data->>'full_name', ''),
+       case when exists (select 1 from public.admin_emails a where lower(a.email) = lower(u.email)) then 'super_admin' else 'pending' end,
+       u.email_confirmed_at is not null, u.created_at
+from auth.users u
+on conflict (user_id) do nothing;
+
+-- Who may edit announcements / faculty: approved admins (and the super admin) with a confirmed email
+create or replace function private.is_admin()
+returns boolean language sql stable security definer set search_path = public, auth
+as $$
+  select exists (
+    select 1 from public.profiles p
+    join auth.users u on u.id = p.user_id
+    where p.user_id = auth.uid() and p.role in ('admin','super_admin') and u.email_confirmed_at is not null
+  );
+$$;
+create or replace function private.is_super_admin()
+returns boolean language sql stable security definer set search_path = public, auth
+as $$
+  select exists (
+    select 1 from public.profiles p
+    join auth.users u on u.id = p.user_id
+    where p.user_id = auth.uid() and p.role = 'super_admin' and u.email_confirmed_at is not null
+  );
+$$;
+revoke all on function private.is_super_admin() from public, anon;
+grant execute on function private.is_super_admin() to authenticated;
+
+-- Every new account gets a profile row. The super admin list is promoted automatically; everyone else is pending.
+-- The row follows the email verification too (email_verified).
+create or replace function public.handle_user_change()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if tg_op = 'INSERT' then
+    insert into public.profiles (user_id, email, full_name, role, email_verified)
+    values (new.id, new.email, coalesce(new.raw_user_meta_data->>'full_name', ''),
+            case when exists (select 1 from public.admin_emails a where lower(a.email) = lower(new.email)) then 'super_admin' else 'pending' end,
+            new.email_confirmed_at is not null)
+    on conflict (user_id) do nothing;
+  else
+    update public.profiles set email_verified = (new.email_confirmed_at is not null), email = new.email
+    where user_id = new.id;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.handle_user_change() from public, anon, authenticated;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_user_change();
+drop trigger if exists on_auth_user_updated on auth.users;
+create trigger on_auth_user_updated after update of email_confirmed_at, email on auth.users for each row execute function public.handle_user_change();
+
+-- Who reviewed, and when, is stamped by the database (the page cannot fake it)
+create or replace function public.stamp_review()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role then
+    new.reviewed_by := (select email from public.profiles where user_id = auth.uid());
+    new.reviewed_at := now();
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.stamp_review() from public, anon, authenticated;
+drop trigger if exists profiles_stamp_review on public.profiles;
+create trigger profiles_stamp_review before update on public.profiles for each row execute function public.stamp_review();
+
+-- A person sees only their own profile; the super admin sees all and may only change 'role' (pending/admin/rejected)
+-- of OTHER people (never their own, never another super admin).
+revoke all on public.profiles from anon, authenticated;
+grant select on public.profiles to authenticated;
+grant update (role) on public.profiles to authenticated;
+drop policy if exists "profiles read" on public.profiles;
+drop policy if exists "profiles review" on public.profiles;
+create policy "profiles read" on public.profiles for select to authenticated
+  using (user_id = auth.uid() or private.is_super_admin());
+create policy "profiles review" on public.profiles for update to authenticated
+  using (private.is_super_admin() and user_id <> auth.uid() and role <> 'super_admin')
+  with check (private.is_super_admin() and role in ('pending','admin','rejected'));
+
+-- Registration is now open (the approval step is the gate), so the old "approved emails only" check lets everyone through.
+create or replace function public.hook_only_approved_emails(event jsonb)
+returns jsonb language plpgsql security definer set search_path = public
+as $$
+begin
+  return '{}'::jsonb;
 end;
 $$;
 revoke all on function public.hook_only_approved_emails(jsonb) from public, anon, authenticated;

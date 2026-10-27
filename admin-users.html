@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Requests | imMBA Back-Office</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 min-h-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">imMBA Back-Office</div>
+          <h1 class="font-serif text-lg font-bold leading-tight truncate">Admin Requests</h1>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs font-bold">
+        <a href="admin-news.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">AdminNews</a>
+        <a href="admin-faculty.html" class="px-3 py-2 border border-slate-600 hover:border-white transition">AdminFaculty</a>
+        <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
+        <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- ==================== LOGIN (Supabase Auth) ==================== -->
+    <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
+      <!-- Filled in by admin-auth.js -->
+    </section>
+
+    <!-- ==================== SUPER ADMIN DASHBOARD ==================== -->
+    <div id="app" class="hidden">
+
+      <div class="mb-6">
+        <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1">Super admin only</div>
+        <h2 class="font-serif text-3xl font-bold">Administrator Requests</h2>
+        <p class="text-sm text-slate-600 mt-1">
+          Register &rarr; verify email &rarr; <strong>pending</strong> &rarr; you review &rarr; <strong>admin</strong>.
+          Only approved admins can change announcements and faculty. Pending and rejected people can log in but see nothing.
+        </p>
+      </div>
+
+      <p id="status-msg" class="mb-4 text-sm font-semibold hidden" role="status" aria-live="polite"></p>
+
+      <!-- Filter tabs -->
+      <div id="tabs" class="flex flex-wrap gap-2 mb-4 text-xs font-bold" role="tablist" aria-label="Filter requests by status"></div>
+
+      <div class="bg-white border border-slate-200 overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+            <tr>
+              <th class="px-4 py-3 font-bold">Applicant</th>
+              <th class="px-4 py-3 font-bold">Registered</th>
+              <th class="px-4 py-3 font-bold">Status</th>
+              <th class="px-4 py-3 font-bold">Reviewed</th>
+              <th class="px-4 py-3 font-bold text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y divide-slate-200"></tbody>
+        </table>
+        <p id="empty-msg" class="hidden p-6 text-sm text-slate-500 text-center"></p>
+      </div>
+      <p class="mt-3 text-xs text-slate-500">Who reviewed a request, and when, is recorded by the database automatically.</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/admin-auth.js"></script>
+  <script src="assets/js/admin-users.js"></script>
+</body>
+</html>
