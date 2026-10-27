@@ -438,13 +438,14 @@ function renderAdmissions() {
   const docsContainer = document.getElementById('admission-docs');
 
   if (tracksContainer) {
-    tracksContainer.innerHTML = imMBAData.admissions.domestic.tracks.map(t => `
-      <div class="bg-slate-900 text-white p-8 border-t-4 border-burgundy">
-        <h4 class="font-serif text-xl font-bold text-white mb-2">${t[`name_${currentLang}`]}</h4>
-        <p class="text-xs text-amber-400 font-mono mb-4 uppercase tracking-wider">${t[`time_${currentLang}`]}</p>
-        <div class="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-4">
-          <p><strong class="text-white">${currentLang === 'zh' ? '入學時間：' : 'Enrollment: '}</strong>${t[`entry_${currentLang}`]}</p>
-          <p><strong class="text-white">${currentLang === 'zh' ? '評分方式：' : 'Selection: '}</strong>${t[`criteria_${currentLang}`]}</p>
+    tracksContainer.innerHTML = imMBAData.admissions.domestic.tracks.map((t, i) => `
+      <div class="bg-white p-8 border border-slate-200 border-t-2 border-t-burgundy hover:border-burgundy/40 transition duration-300">
+        <div class="font-serif text-3xl font-bold text-burgundy mb-3">${String(i + 1).padStart(2, '0')}</div>
+        <h4 class="font-serif text-xl font-bold text-slate-900 mb-2">${t[`name_${currentLang}`]}</h4>
+        <p class="text-sm text-slate-600 mb-5">${t[`time_${currentLang}`]}</p>
+        <div class="space-y-2 text-sm text-slate-600 border-t border-slate-200 pt-4">
+          <p><strong class="text-slate-900">${currentLang === 'zh' ? '入學時間：' : 'Enrollment: '}</strong>${t[`entry_${currentLang}`]}</p>
+          <p><strong class="text-slate-900">${currentLang === 'zh' ? '評分方式：' : 'Selection: '}</strong>${t[`criteria_${currentLang}`]}</p>
         </div>
       </div>
     `).join('');
@@ -458,9 +459,9 @@ function renderAdmissions() {
 
   if (docsContainer) {
     docsContainer.innerHTML = imMBAData.admissions.domestic.docs.map((doc, idx) => `
-      <li class="flex items-start gap-3 p-3 bg-white border border-slate-200 text-xs text-slate-800">
-        <span class="font-mono font-bold text-burgundy">${String(idx + 1).padStart(2, '0')}.</span>
-        <span class="font-medium">${doc[`name_${currentLang}`]}</span>
+      <li class="bg-white p-6 border border-slate-200 hover:border-burgundy/40 transition duration-300">
+        <div class="font-serif text-2xl font-bold text-burgundy mb-2">${String(idx + 1).padStart(2, '0')}</div>
+        <p class="text-base font-medium text-slate-900 leading-snug">${doc[`name_${currentLang}`]}</p>
       </li>
     `).join('');
   }
