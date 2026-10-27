@@ -358,3 +358,100 @@ create policy "alumni admin insert" on public.alumni for insert to authenticated
 create policy "alumni admin update" on public.alumni for update to authenticated using (private.is_admin()) with check (private.is_admin());
 create policy "audit admin read"    on public.audit_log for select to authenticated using (private.is_admin());
 -- no delete policy on alumni and no insert/update/delete on audit_log: nobody can remove records or rewrite history
+
+-- ---------------------------------------------------------------------------
+-- Activity Log for the whole back office. The same audit_log table now also records announcements, faculty and
+-- admin accounts (alumni was already covered). Written by database triggers, so nothing can skip or fake it.
+--   announcements / faculty: CREATE, UPDATE (old -> new values), DELETE (the deleted values are kept in the log)
+--   admin accounts (profiles): REGISTER (asked for access), APPROVE, REJECT (also used when access is removed)
+-- Faculty re-ordering (sort_order only) is not logged, to avoid dozens of entries for one drag.
+-- ---------------------------------------------------------------------------
+alter table public.audit_log drop constraint if exists audit_log_action_check;
+alter table public.audit_log add constraint audit_log_action_check
+  check (action in ('CREATE','UPDATE','DELETE','RESTORE','REGISTER','APPROVE','REJECT'));
+
+create or replace function public.audit_changes() returns trigger language plpgsql security definer set search_path = public
+as $$
+declare
+  tbl text := tg_table_name; fields text[]; lbl text; act text; chg jsonb := '{}'::jsonb;
+  f text; o jsonb; n jsonb; who text; rec jsonb;
+begin
+  fields := case tbl
+    when 'announcements' then array['date','pinned','order','status','url','title_zh','title_en','content_zh','content_en','image_url']
+    when 'faculty'       then array['name','title','education','research_fields','email','phone','website','image_url','category']
+  end;
+  select email into who from public.profiles where user_id = auth.uid();
+  rec := case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end;
+  lbl := case tbl
+    when 'announcements' then coalesce(nullif(rec->>'title_en', ''), nullif(rec->>'title_zh', ''), rec->>'id')
+    when 'faculty'       then rec->>'name'
+  end;
+  if tg_op = 'INSERT' then
+    act := 'CREATE'; n := to_jsonb(new);
+    foreach f in array fields loop
+      if n->f <> 'null'::jsonb and n->>f <> '' then chg := chg || jsonb_build_object(f, jsonb_build_array(null, n->f)); end if;
+    end loop;
+  elsif tg_op = 'UPDATE' then
+    act := 'UPDATE'; o := to_jsonb(old); n := to_jsonb(new);
+    foreach f in array fields loop
+      if o->f is distinct from n->f then chg := chg || jsonb_build_object(f, jsonb_build_array(o->f, n->f)); end if;
+    end loop;
+    if chg = '{}'::jsonb then return new; end if;
+  else
+    act := 'DELETE'; o := to_jsonb(old);
+    foreach f in array fields loop
+      if o->f <> 'null'::jsonb and o->>f <> '' then chg := chg || jsonb_build_object(f, jsonb_build_array(o->f, null)); end if;
+    end loop;
+  end if;
+  insert into public.audit_log (admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+  values (auth.uid(), coalesce(who, 'system'), act, tbl, rec->>'id', coalesce(lbl, ''), chg, 'manual');
+  return case when tg_op = 'DELETE' then old else new end;
+end;
+$$;
+revoke all on function public.audit_changes() from public, anon, authenticated;
+drop trigger if exists announcements_audit on public.announcements;
+create trigger announcements_audit after insert or update or delete on public.announcements for each row execute function public.audit_changes();
+drop trigger if exists faculty_audit on public.faculty;
+create trigger faculty_audit after insert or update or delete on public.faculty for each row execute function public.audit_changes();
+
+create or replace function public.audit_profiles() returns trigger language plpgsql security definer set search_path = public
+as $$
+declare who text; act text;
+begin
+  if tg_op = 'INSERT' then
+    insert into public.audit_log (admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+    values (new.user_id, new.email, 'REGISTER', 'profiles', new.user_id::text,
+            coalesce(nullif(new.full_name, ''), new.email) || ' (' || new.email || ')',
+            jsonb_build_object('role', jsonb_build_array(null, new.role)), 'manual');
+    return new;
+  end if;
+  if new.role is not distinct from old.role then return new; end if;
+  select email into who from public.profiles where user_id = auth.uid();
+  act := case when new.role in ('admin', 'super_admin') then 'APPROVE' when new.role = 'rejected' then 'REJECT' else 'UPDATE' end;
+  insert into public.audit_log (admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+  values (auth.uid(), coalesce(who, 'system'), act, 'profiles', new.user_id::text,
+          coalesce(nullif(new.full_name, ''), new.email) || ' (' || new.email || ')',
+          jsonb_build_object('role', jsonb_build_array(old.role, new.role)), 'manual');
+  return new;
+end;
+$$;
+revoke all on function public.audit_profiles() from public, anon, authenticated;
+drop trigger if exists profiles_audit on public.profiles;
+create trigger profiles_audit after insert or update of role on public.profiles for each row execute function public.audit_profiles();
+
+-- One-time: add the registrations and approvals that happened before logging started (from the profiles table)
+insert into public.audit_log (created_at, admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+select p.created_at, p.user_id, p.email, 'REGISTER', 'profiles', p.user_id::text,
+       coalesce(nullif(p.full_name, ''), p.email) || ' (' || p.email || ')',
+       jsonb_build_object('role', jsonb_build_array(null, case when exists (select 1 from public.admin_emails a where lower(a.email) = lower(p.email)) then 'super_admin' else 'pending' end)),
+       'recovered from account records'
+from public.profiles p
+where not exists (select 1 from public.audit_log l where l.table_name = 'profiles');
+insert into public.audit_log (created_at, admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+select p.reviewed_at, (select r.user_id from public.profiles r where r.email = p.reviewed_by), coalesce(p.reviewed_by, 'system'),
+       case when p.role in ('admin', 'super_admin') then 'APPROVE' else 'REJECT' end, 'profiles', p.user_id::text,
+       coalesce(nullif(p.full_name, ''), p.email) || ' (' || p.email || ')',
+       jsonb_build_object('role', jsonb_build_array('pending', p.role)), 'recovered from account records'
+from public.profiles p
+where p.reviewed_at is not null and p.role <> 'pending'
+  and not exists (select 1 from public.audit_log l where l.table_name = 'profiles' and l.action in ('APPROVE', 'REJECT'));

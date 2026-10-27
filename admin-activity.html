@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Activity Log | imMBA Back-Office</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <header class="bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 min-h-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="assets/img/seal.svg" alt="" class="w-10 h-10 shrink-0" aria-hidden="true">
+        <div class="min-w-0">
+          <div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">imMBA Back-Office</div>
+          <h1 class="font-serif text-lg font-bold leading-tight truncate">Activity Log</h1>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs font-bold">
+        <span id="user-email" class="hidden text-slate-300 font-normal max-w-[14rem] truncate"></span>
+        <button id="btn-logout" type="button" class="hidden px-3 py-2 bg-burgundy hover:bg-burgundyDark transition">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- ==================== LOGIN (Supabase Auth) ==================== -->
+    <section id="auth" class="max-w-md mx-auto bg-white border border-slate-200 p-8 hidden">
+      <!-- Filled in by admin-auth.js -->
+    </section>
+
+    <!-- ==================== ACTIVITY LOG ==================== -->
+    <div id="app" class="hidden">
+
+      <div class="mb-6">
+        <div class="text-xs font-bold uppercase tracking-widest text-burgundy font-mono mb-1">Who &rarr; did what &rarr; to which record &rarr; when</div>
+        <nav class="flex flex-wrap items-end gap-x-6 gap-y-2" aria-label="Back-office sections">
+            <a href="admin-news.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition">Announcements</a>
+            <a href="admin-faculty.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition">Faculty</a>
+            <a href="admin-alumni.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition">Alumni</a>
+            <a href="admin-users.html" class="hidden font-serif text-2xl sm:text-3xl font-bold text-slate-400 hover:text-burgundy border-b-4 border-transparent pb-1 transition" data-super-only>Admins <span data-pending-badge class="hidden ml-1 align-middle px-2 py-0.5 bg-burgundy text-white rounded-full text-xs font-sans">&nbsp;</span></a>
+            <a href="admin-activity.html" class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 border-b-4 border-burgundy pb-1" aria-current="page">Activity Log</a>
+          </nav>
+        <p class="text-sm text-slate-600 mt-2 max-w-4xl">
+          Everything that changes in the back office is written here by the database itself: alumni, announcements, faculty and admin accounts
+          (registrations, approvals, rejections). Nobody can edit or delete an entry. Not logged: logins, and the order of the faculty list.
+        </p>
+      </div>
+
+      <p id="status-msg" class="mb-4 text-sm font-semibold hidden" role="status" aria-live="polite"></p>
+
+      <!-- Filters -->
+      <div class="mb-4 grid sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div><label for="a-area" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Area</label>
+          <select id="a-area" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy">
+            <option value="">All areas</option><option value="alumni">Alumni</option><option value="announcements">Announcements</option>
+            <option value="faculty">Faculty</option><option value="profiles">Admin accounts</option></select></div>
+        <div><label for="a-action" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Action</label>
+          <select id="a-action" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy">
+            <option value="">All actions</option><option>CREATE</option><option>UPDATE</option><option>DELETE</option><option>RESTORE</option>
+            <option>REGISTER</option><option>APPROVE</option><option>REJECT</option></select></div>
+        <div><label for="a-admin" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Admin</label>
+          <select id="a-admin" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-burgundy"></select></div>
+        <div class="lg:col-span-1"><label for="a-q" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Search record</label>
+          <input id="a-q" type="search" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy" placeholder="Name or title"></div>
+        <div><label for="a-from" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">From</label>
+          <input id="a-from" type="date" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy"></div>
+        <div><label for="a-to" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">To</label>
+          <input id="a-to" type="date" class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy"></div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 mb-3 text-xs font-bold">
+        <button id="a-clear" type="button" class="px-4 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Clear filters</button>
+        <button id="a-refresh" type="button" class="px-4 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy transition">Refresh</button>
+        <span id="a-count" class="text-slate-600 font-normal"></span>
+      </div>
+
+      <div class="bg-white border border-slate-200 overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600"><tr>
+            <th class="px-4 py-3 font-bold">When</th><th class="px-4 py-3 font-bold">Admin</th><th class="px-4 py-3 font-bold">Area</th>
+            <th class="px-4 py-3 font-bold">Action</th><th class="px-4 py-3 font-bold">Record</th><th class="px-4 py-3 font-bold">What changed</th></tr></thead>
+          <tbody id="a-rows" class="divide-y divide-slate-200"></tbody>
+        </table>
+        <p id="a-empty" class="hidden p-6 text-sm text-slate-500 text-center"></p>
+      </div>
+      <div class="mt-3 text-center"><button id="a-more" type="button" class="hidden px-5 py-2 border border-slate-300 hover:border-burgundy hover:text-burgundy text-xs font-bold uppercase tracking-wider transition">Show more</button></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/admin-auth.js"></script>
+  <script src="assets/js/admin-activity.js"></script>
+</body>
+</html>

@@ -291,14 +291,14 @@
   function historyRows(list, showRecord) {
     return list.map(h => `<tr>
       <td class="px-4 py-3 align-top whitespace-nowrap text-slate-700">${esc(when(h.created_at))}</td>
-      <td class="px-4 py-3 align-top break-all">${esc(h.admin_email)}</td>
+      <td class="px-4 py-3 align-top min-w-[12rem] break-words">${esc(h.admin_email)}</td>
       <td class="px-4 py-3 align-top"><span class="inline-block px-2 py-1 text-[11px] font-bold tracking-wider ${ACTION_STYLE[h.action] || ''}">${esc(h.action)}</span></td>
       ${showRecord ? `<td class="px-4 py-3 align-top">${esc(h.record_label)}</td>` : ''}
       <td class="px-4 py-3 align-top text-slate-700">${esc(describe(h))}${h.source && h.source !== 'manual' ? `<div class="text-xs text-slate-500 mt-0.5">${esc(h.source)}</div>` : ''}</td></tr>`).join('');
   }
 
   async function loadHistoryView() {
-    let q = sb.from('audit_log').select('*').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(300);
+    let q = sb.from('audit_log').select('*').eq('table_name', 'alumni').order('created_at', { ascending: false }).order('id', { ascending: false }).limit(300);
     if ($('h-action').value) q = q.eq('action', $('h-action').value);
     const { data, error } = await q;
     if (error) { flash(errText(error), true); return; }
