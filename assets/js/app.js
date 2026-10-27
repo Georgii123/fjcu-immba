@@ -457,6 +457,7 @@ function renderAdmissions() {
   }
 
   if (docsContainer) {
+    docsContainer.style.setProperty('--doc-rows', Math.ceil(imMBAData.admissions.domestic.docs.length / 2));
     docsContainer.innerHTML = imMBAData.admissions.domestic.docs.map((doc, idx) => `
       <li class="flex items-baseline gap-4 bg-white px-6 py-5 border border-slate-200 hover:border-burgundy/40 transition duration-300">
         <span class="font-serif text-2xl font-bold text-burgundy shrink-0 lining-nums">${String(idx + 1).padStart(2, '0')}</span>

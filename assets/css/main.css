@@ -129,3 +129,8 @@ html.menu-ready .page-top-spacer { transition: height 0.4s cubic-bezier(0.4, 0, 
 #topbar-slot #nav-actions > div { background: #fff; }
 /* Header height changes are compensated in JS, so the browser must not also adjust */
 body { overflow-anchor: none; }
+
+/* Admissions documents: number down the columns (01-04 left, 05-08 right) instead of across the rows */
+@media (min-width: 640px) {
+  #admission-docs { grid-auto-flow: column; grid-template-rows: repeat(var(--doc-rows, 4), auto); }
+}
