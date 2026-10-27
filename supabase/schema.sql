@@ -237,3 +237,124 @@ end;
 $$;
 revoke all on function public.hook_only_approved_emails(jsonb) from public, anon, authenticated;
 grant execute on function public.hook_only_approved_emails(jsonb) to supabase_auth_admin;
+
+-- ---------------------------------------------------------------------------
+-- Alumni database + audit trail (assignment #7). Only approved admins can read or change alumni.
+-- Delete is a "soft delete" (deleted_at is filled in, the row stays and can be restored); nobody can hard-delete.
+-- Every create / update / delete / restore is written to audit_log by a database trigger, so it cannot be skipped
+-- or faked from the page, and nobody can edit or delete the log.
+-- ---------------------------------------------------------------------------
+create table if not exists public.alumni (
+  id              uuid        primary key default gen_random_uuid(),
+  full_name       text        not null check (length(btrim(full_name)) between 1 and 120),
+  student_id      text        not null check (length(btrim(student_id)) between 1 and 40),
+  department      text        not null check (length(btrim(department)) between 1 and 120),
+  degree_program  text        not null check (degree_program in ('Bachelor','Master','Doctoral','Other')),
+  admission_year  integer     check (admission_year between 1900 and 2100),
+  graduation_year integer     check (graduation_year between 1900 and 2100),
+  email           text        not null default '' check (email = '' or (length(email) <= 200 and email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$')),
+  phone           text        not null default '' check (length(phone) <= 40),
+  company         text        not null default '' check (length(company) <= 120),
+  job_title       text        not null default '' check (length(job_title) <= 120),
+  notes           text        not null default '' check (length(notes) <= 2000),
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  deleted_at      timestamptz,
+  check (admission_year is null or graduation_year is null or graduation_year >= admission_year)
+);
+-- one ACTIVE record per student ID (a deleted record does not block re-adding the ID)
+create unique index if not exists alumni_student_id_active on public.alumni (lower(btrim(student_id))) where deleted_at is null;
+
+create or replace function public.alumni_touch() returns trigger language plpgsql
+as $$ begin new.updated_at := now(); return new; end; $$;
+drop trigger if exists alumni_touch on public.alumni;
+create trigger alumni_touch before update on public.alumni for each row execute function public.alumni_touch();
+
+-- Audit log: Who -> did what -> to which record -> when -> what changed
+create table if not exists public.audit_log (
+  id           bigint      generated always as identity primary key,
+  created_at   timestamptz not null default now(),                         -- when
+  admin_id     uuid,                                                       -- who (account)
+  admin_email  text        not null default 'system',                      -- who (shown)
+  action       text        not null check (action in ('CREATE','UPDATE','DELETE','RESTORE')),
+  table_name   text        not null,                                       -- which table
+  record_id    text        not null,                                       -- which record
+  record_label text        not null default '',                            -- readable name of the record
+  changes      jsonb       not null default '{}'::jsonb,                   -- {field: [old, new]}
+  source       text        not null default 'manual'                       -- manual, or "CSV import: file name"
+);
+create index if not exists audit_log_record on public.audit_log (record_id, created_at desc);
+create index if not exists audit_log_time on public.audit_log (created_at desc);
+
+create or replace function public.audit_alumni() returns trigger language plpgsql security definer set search_path = public
+as $$
+declare
+  act text; chg jsonb := '{}'::jsonb; f text; o jsonb; n jsonb; who text;
+  fields text[] := array['full_name','student_id','department','degree_program','admission_year','graduation_year','email','phone','company','job_title','notes'];
+begin
+  select email into who from public.profiles where user_id = auth.uid();
+  n := to_jsonb(new);
+  if tg_op = 'INSERT' then
+    act := 'CREATE';
+    foreach f in array fields loop
+      if n->f <> 'null'::jsonb and n->>f <> '' then chg := chg || jsonb_build_object(f, jsonb_build_array(null, n->f)); end if;
+    end loop;
+  else
+    o := to_jsonb(old);
+    if old.deleted_at is null and new.deleted_at is not null then act := 'DELETE';
+    elsif old.deleted_at is not null and new.deleted_at is null then act := 'RESTORE';
+    else
+      act := 'UPDATE';
+      foreach f in array fields loop
+        if o->f is distinct from n->f then chg := chg || jsonb_build_object(f, jsonb_build_array(o->f, n->f)); end if;
+      end loop;
+      if chg = '{}'::jsonb then return new; end if;   -- nothing important changed
+    end if;
+  end if;
+  insert into public.audit_log (admin_id, admin_email, action, table_name, record_id, record_label, changes, source)
+  values (auth.uid(), coalesce(who, 'system'), act, 'alumni', new.id::text, new.full_name || ' (' || new.student_id || ')', chg,
+          coalesce(nullif(current_setting('app.audit_source', true), ''), 'manual'));
+  return new;
+end;
+$$;
+revoke all on function public.audit_alumni() from public, anon, authenticated;
+drop trigger if exists alumni_audit on public.alumni;
+create trigger alumni_audit after insert or update on public.alumni for each row execute function public.audit_alumni();
+
+-- Batch import: all rows or none, in one transaction. Runs with the caller's rights, so only approved admins can use it.
+create or replace function public.import_alumni(rows jsonb, file_name text default 'file')
+returns integer language plpgsql security invoker set search_path = public
+as $$
+declare n integer;
+begin
+  if jsonb_typeof(rows) <> 'array' or jsonb_array_length(rows) < 1 or jsonb_array_length(rows) > 1000 then
+    raise exception 'Send between 1 and 1000 rows.';
+  end if;
+  perform set_config('app.audit_source', 'CSV import: ' || left(coalesce(file_name, 'file'), 80), true);
+  insert into public.alumni (full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes)
+  select r.full_name, r.student_id, r.department, r.degree_program, r.admission_year, r.graduation_year,
+         coalesce(r.email, ''), coalesce(r.phone, ''), coalesce(r.company, ''), coalesce(r.job_title, ''), coalesce(r.notes, '')
+  from jsonb_to_recordset(rows) as r(full_name text, student_id text, department text, degree_program text, admission_year integer,
+                                      graduation_year integer, email text, phone text, company text, job_title text, notes text);
+  get diagnostics n = row_count;
+  return n;
+end;
+$$;
+revoke all on function public.import_alumni(jsonb, text) from public, anon;
+grant execute on function public.import_alumni(jsonb, text) to authenticated;
+
+alter table public.alumni enable row level security;
+alter table public.audit_log enable row level security;
+revoke all on public.alumni, public.audit_log from anon, authenticated;
+grant select on public.alumni, public.audit_log to authenticated;
+grant insert (full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes) on public.alumni to authenticated;
+grant update (full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes, deleted_at) on public.alumni to authenticated;
+drop policy if exists "alumni admin read" on public.alumni;
+drop policy if exists "alumni admin insert" on public.alumni;
+drop policy if exists "alumni admin update" on public.alumni;
+drop policy if exists "audit admin read" on public.audit_log;
+create policy "alumni admin read"   on public.alumni for select to authenticated using (private.is_admin());
+create policy "alumni admin insert" on public.alumni for insert to authenticated with check (private.is_admin());
+create policy "alumni admin update" on public.alumni for update to authenticated using (private.is_admin()) with check (private.is_admin());
+create policy "audit admin read"    on public.audit_log for select to authenticated using (private.is_admin());
+-- no delete policy on alumni and no insert/update/delete on audit_log: nobody can remove records or rewrite history

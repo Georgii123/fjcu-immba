@@ -1,0 +1,16 @@
+﻿full_name,student_id,department,degree_program,admission_year,graduation_year,email,phone,company,job_title,notes
+Amy Chen,A20230001,International Management MBA,Master,2021,2023,amy.chen@example.com,0900-000-001,Example Logistics Co.,Operations Manager,Made-up sample person
+Brian Lin,A20230002,International Management MBA,Master,2021,2023,brian.lin@example.com,0900-000-002,Sample Semiconductor Inc.,Product Manager,
+Cindy Wu,A20230003,International Management MBA,Master,2021,2023,cindy.wu@example.com,0900-000-003,Demo Bank,Senior Analyst,"Spoke at the 2024 alumni day, joined the mentor program"
+David Huang,A20240001,International Management MBA,Master,2022,2024,david.huang@example.com,0900-000-004,Fictional Airlines,Route Planner,
+Emily Tsai,A20240002,International Management MBA,Master,2022,2024,emily.tsai@example.com,0900-000-005,Sample Retail Group,Marketing Director,
+Frank Lee,A20240003,International Management MBA,Master,2022,2024,frank.lee@example.com,0900-000-006,Example Consulting,Consultant,
+王小明,A20250001,International Management MBA,Master,2023,2025,xiaoming.wang@example.com,0900-000-007,範例科技股份有限公司,專案經理,虛構的範例資料
+李美玲,A20250002,International Management MBA,Master,2023,2025,meiling.li@example.com,0900-000-008,示範貿易公司,業務經理,虛構的範例資料
+張志強,A20250003,International Management MBA,Master,2023,2025,zhiqiang.zhang@example.com,0900-000-009,Demo Foods Ltd.,Export Manager,
+Grace Yang,A20250004,International Management MBA,Master,2023,2025,grace.yang@example.com,0900-000-010,Sample Hospital,Administrator,
+Henry Kuo,B20220001,Department of Business Administration,Bachelor,2018,2022,henry.kuo@example.com,0900-000-011,Example Startup,Founder,
+Irene Liu,B20220002,Department of Business Administration,Bachelor,2018,2022,irene.liu@example.com,0900-000-012,Demo Media,Account Executive,
+Jason Hsu,D20240001,PhD Program in Management,Doctoral,2019,2024,jason.hsu@example.com,0900-000-013,Sample University,Assistant Professor,
+Kelly Chang,A20250005,International Management MBA,Other,2024,2025,kelly.chang@example.com,0900-000-014,Example Energy,Analyst,Exchange student
+Leo Wang,A20250006,International Management MBA,Master,2023,2025,leo.wang@example.com,0900-000-015,Fictional Motors,Supply Chain Lead,
