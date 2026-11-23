@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>imMBA Market | 輔仁大學 imMBA</title>
+  <meta name="description" content="imMBA Market: students and alumni buy and sell imMBA items with each other.">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-burgundy selection:text-white">
+
+  <script src="assets/js/site-chrome.js" data-page="market"></script>
+  <div class="page-top-spacer" aria-hidden="true"></div>
+
+  <!-- ==================== TITLE + ACCOUNT ==================== -->
+  <section class="bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-amber-400 font-bold">Students &amp; alumni · C2C</p>
+        <h1 class="font-serif text-4xl sm:text-5xl font-bold mt-2">imMBA Market</h1>
+        <p class="text-slate-300 text-sm mt-3 max-w-xl">Buy and sell imMBA items with other members. One account, two modes: shop as a buyer, or list and ship your own items as a seller.</p>
+      </div>
+      <div id="account-box" class="bg-white/5 border border-white/10 p-4 min-w-[18rem]">
+        <!-- Filled in by market.js -->
+        <p class="text-sm text-slate-300">Loading…</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <p id="flash" class="hidden mb-6 px-4 py-3 text-sm font-semibold border" role="status" aria-live="polite"></p>
+
+    <!-- Summary cards (change with the mode) -->
+    <div id="summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"></div>
+
+    <!-- ==================== BUYER MODE ==================== -->
+    <div id="buyer-view">
+      <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-start">
+        <section aria-labelledby="browse-title">
+          <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+            <h2 id="browse-title" class="font-serif text-2xl font-bold">Browse products</h2>
+            <p id="result-count" class="text-xs text-slate-500 font-semibold"></p>
+          </div>
+          <!-- Filters -->
+          <form id="filters" class="bg-white border border-slate-200 p-4 mb-5 grid grid-cols-2 md:grid-cols-6 gap-3 text-sm" onsubmit="return false">
+            <label class="col-span-2 md:col-span-2"><span class="sr-only">Search</span>
+              <input id="f-q" type="search" placeholder="Search name, description, seller…" class="w-full border border-slate-300 px-3 py-2 focus:outline-none focus:border-burgundy"></label>
+            <label><span class="sr-only">Category</span>
+              <select id="f-cat" class="w-full border border-slate-300 px-2 py-2 focus:outline-none focus:border-burgundy"><option value="">All categories</option></select></label>
+            <label><span class="sr-only">Minimum price</span>
+              <input id="f-min" type="number" min="0" placeholder="Min NT$" class="w-full border border-slate-300 px-3 py-2 focus:outline-none focus:border-burgundy"></label>
+            <label><span class="sr-only">Maximum price</span>
+              <input id="f-max" type="number" min="0" placeholder="Max NT$" class="w-full border border-slate-300 px-3 py-2 focus:outline-none focus:border-burgundy"></label>
+            <label><span class="sr-only">Sort</span>
+              <select id="f-sort" class="w-full border border-slate-300 px-2 py-2 focus:outline-none focus:border-burgundy">
+                <option value="new">Newest</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option>
+              </select></label>
+            <label class="col-span-2 md:col-span-6 flex items-center gap-2 text-xs font-semibold text-slate-600">
+              <input id="f-stock" type="checkbox" class="accent-[#800020]" checked> In stock only
+              <button id="f-clear" type="button" class="ml-auto font-bold text-burgundy hover:underline">Clear filters</button>
+            </label>
+          </form>
+          <div id="products" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+          <p id="products-empty" class="hidden bg-white border border-dashed border-slate-300 p-10 text-center text-sm text-slate-500"></p>
+        </section>
+
+        <!-- Cart -->
+        <aside id="cart" class="bg-white border border-slate-200 lg:sticky lg:top-[calc(var(--site-top-h,120px)+16px)]" aria-labelledby="cart-title"></aside>
+      </div>
+
+      <section class="mt-14" aria-labelledby="orders-title">
+        <h2 id="orders-title" class="font-serif text-2xl font-bold mb-1">My orders</h2>
+        <p class="text-xs text-slate-500 mb-4">Order status and purchase history. Completed orders stay here as your record.</p>
+        <div id="buyer-orders" class="space-y-4"></div>
+      </section>
+    </div>
+
+    <!-- ==================== SELLER MODE ==================== -->
+    <div id="seller-view" class="hidden">
+      <section aria-labelledby="listings-title">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+          <div>
+            <h2 id="listings-title" class="font-serif text-2xl font-bold">Inventory management</h2>
+            <p class="text-xs text-slate-500 mt-1">Available stock = current inventory − purchased quantity. It goes down automatically when someone orders.</p>
+          </div>
+          <button id="btn-new" type="button" class="px-5 py-2.5 bg-slate-900 hover:bg-burgundy text-white text-xs font-bold uppercase tracking-wider transition">+ Add new item</button>
+        </div>
+        <div id="listings" class="bg-white border border-slate-200 divide-y divide-slate-200"></div>
+      </section>
+
+      <section class="mt-14" aria-labelledby="som-title">
+        <h2 id="som-title" class="font-serif text-2xl font-bold mb-1">Seller order management</h2>
+        <p class="text-xs text-slate-500 mb-4">Waiting for payment → Payment confirmed (ready to ship) → Shipped → Completed.</p>
+        <div id="seller-orders" class="grid md:grid-cols-2 xl:grid-cols-4 gap-4 items-start"></div>
+      </section>
+
+      <section class="mt-14" aria-labelledby="fin-title">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+          <div>
+            <h2 id="fin-title" class="font-serif text-2xl font-bold">Financial management</h2>
+            <p class="text-xs text-slate-500 mt-1">Monthly report from completed orders. Platform fee is charged per transaction.</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-bold">
+            <label for="fin-month" class="text-slate-500">Filter by month</label>
+            <select id="fin-month" class="border border-slate-300 px-2 py-2 focus:outline-none focus:border-burgundy"></select>
+            <button id="btn-csv" type="button" class="px-4 py-2 border border-slate-900 hover:bg-slate-900 hover:text-white transition">Export CSV</button>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 overflow-x-auto">
+          <table class="w-full text-sm text-left min-w-[640px]">
+            <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600">
+              <tr><th class="px-4 py-3">Month</th><th class="px-4 py-3">Completed orders</th><th class="px-4 py-3">Items sold</th><th class="px-4 py-3 text-right">Revenue</th><th class="px-4 py-3 text-right">Platform fees</th><th class="px-4 py-3 text-right">Net</th></tr>
+            </thead>
+            <tbody id="fin-rows" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+        <h3 class="font-serif text-lg font-bold mt-8 mb-3">Sales history</h3>
+        <div id="sales-history" class="bg-white border border-slate-200 overflow-x-auto"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== DIALOGS ==================== -->
+  <dialog id="dlg" class="w-[min(640px,calc(100vw-2rem))] p-0 border border-slate-300 shadow-2xl backdrop:bg-slate-900/60"></dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/market.js"></script>
+</body>
+</html>

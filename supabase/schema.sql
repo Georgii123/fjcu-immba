@@ -455,3 +455,7 @@ select p.reviewed_at, (select r.user_id from public.profiles r where r.email = p
 from public.profiles p
 where p.reviewed_at is not null and p.role <> 'pending'
   and not exists (select 1 from public.audit_log l where l.table_name = 'profiles' and l.action in ('APPROVE', 'REJECT'));
+
+-- ---------------------------------------------------------------------------
+-- imMBA Market (buyer / seller / platform admin, orders, stock): see supabase/marketplace.sql
+-- ---------------------------------------------------------------------------

@@ -185,6 +185,9 @@ const AdminAuth = (() => {
     if (role === 'rejected') {
       return showStatus('Access not granted', 'Your request for back-office access was not approved. If you think this is a mistake, contact the site owner.');
     }
+    if (role === 'member') {
+      return showStatus('Market account', 'This account is for the imMBA Market (buying and selling). It does not have back-office access.', ['market.html', 'Go to the Market']);
+    }
     if (role !== 'admin' && role !== 'super_admin') {
       return showStatus('Waiting for approval', 'Your email is confirmed and your request has been received. The site owner must approve it before you can use the back office. Try again later.');
     }

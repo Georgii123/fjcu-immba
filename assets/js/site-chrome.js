@@ -5,7 +5,7 @@
  */
 (() => {
   const page = (document.currentScript && document.currentScript.dataset.page) || 'home';
-  const FILES = { home: 'index.html', about: 'about.html', admissions: 'admissions.html', curriculum: 'curriculum.html', faculty: 'faculty.html' };
+  const FILES = { home: 'index.html', about: 'about.html', admissions: 'admissions.html', curriculum: 'curriculum.html', faculty: 'faculty.html', market: 'market.html' };
   const h = (p, hash) => (p === page && hash ? '' : FILES[p]) + (hash ? '#' + hash : '');
   const on = p => (p === page ? '!text-burgundy' : '');
 
@@ -90,6 +90,7 @@
           <a href="#marketplace" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_marketplace">職缺平台</span></a>
           <a href="#highlights" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_events">活動花絮</span></a>
           <a href="${h('home','news')}" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_announcements">最新公告</span></a>
+          <a href="${h('market')}" class="${on('market')} px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_market">imMBA 市集</span></a>
           <a href="#downloads" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_downloads">表格下載</span></a>
           <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="px-3.5 py-3 hover:text-burgundy transition"><span data-i18n="nav_college_menu">管理學院</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
       </nav>
@@ -119,6 +120,7 @@
       <a href="#marketplace" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_marketplace">職缺平台</a>
       <a href="#highlights" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_events">活動花絮</a>
       <a href="${h('home','news')}" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_announcements">最新公告</a>
+      <a href="${h('market')}" class="${on('market')} block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_market">imMBA 市集</a>
       <a href="#downloads" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_downloads">表格下載</a>
       <a href="#contact" class="block text-slate-800 font-bold text-sm hover:text-burgundy" data-i18n="nav_contact">聯絡我們</a>
       <a href="https://www.management.fju.edu.tw/index_en.php" target="_blank" rel="noopener" class="block text-slate-800 font-bold text-sm hover:text-burgundy"><span data-i18n="nav_college_menu">管理學院</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>

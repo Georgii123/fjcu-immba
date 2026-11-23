@@ -49,7 +49,8 @@
       .select('user_id, email, full_name, role, email_verified, created_at, reviewed_by, reviewed_at')
       .order('created_at', { ascending: false });
     if (error) throw error;
-    people = data || [];
+    // Market-only accounts (role 'member', see supabase/marketplace.sql) never asked for back-office access.
+    people = (data || []).filter(p => p.role !== 'member');
   }
 
   async function setRole(person, role) {
