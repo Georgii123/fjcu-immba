@@ -25,7 +25,7 @@
   const state = {
     session: null, profile: null,
     mode: (() => { try { return localStorage.getItem('market_mode') || 'buyer'; } catch { return 'buyer'; } })(),
-    products: [], cart: [], buyerOrders: [], sellerOrders: [], myListings: [],
+    products: [], cart: [], buyerOrders: [], sellerOrders: [], myListings: [], notes: [],
     settings: { platform_fee: 4, delivery_fee: 80 }, shipping: 'pickup'
   };
 
@@ -45,6 +45,7 @@
     const m = (ex && (ex.message || ex.error_description)) || String(ex);
     if (/Invalid login credentials/i.test(m)) return 'Wrong email or password (or the email is not confirmed yet).';
     if (/Failed to fetch|NetworkError/i.test(m)) return 'Cannot reach the server. Check your connection and try again.';
+    if (state.profile && state.profile.market_status === 'suspended' && /row-level security|permission denied/i.test(m)) return 'Your market account is suspended by the platform admin.';
     if (/row-level security|permission denied/i.test(m)) return 'You are not allowed to do that.';
     return m;
   }
@@ -72,14 +73,16 @@
     if (data) state.settings = data;
   }
   async function loadMine() {
-    if (!me()) { state.cart = []; state.buyerOrders = []; state.sellerOrders = []; state.myListings = []; return; }
-    const [cart, bo, so, mine] = await Promise.all([
+    if (!me()) { state.cart = []; state.buyerOrders = []; state.sellerOrders = []; state.myListings = []; state.notes = []; return; }
+    const [cart, bo, so, mine, notes] = await Promise.all([
       sb.from('market_cart').select('product_id, qty, market_products(*)').eq('user_id', me()),
       sb.from('market_orders').select('*, market_order_items(*)').eq('buyer_id', me()).order('created_at', { ascending: false }),
       sb.from('market_orders').select('*, market_order_items(*)').eq('seller_id', me()).order('created_at', { ascending: false }),
-      sb.from('market_products').select('*').eq('seller_id', me()).order('created_at', { ascending: false })
+      sb.from('market_products').select('*').eq('seller_id', me()).order('created_at', { ascending: false }),
+      sb.from('market_notifications').select('*').eq('user_id', me()).order('created_at', { ascending: false }).limit(50)
     ]);
-    for (const r of [cart, bo, so, mine]) if (r.error) throw r.error;
+    for (const r of [cart, bo, so, mine, notes]) if (r.error) throw r.error;
+    state.notes = notes.data;
     // A product the seller hid or deleted can no longer be bought: drop it from the cart.
     const gone = cart.data.filter(c => !c.market_products).map(c => c.product_id);
     if (gone.length) await sb.from('market_cart').delete().eq('user_id', me()).in('product_id', gone);
@@ -106,14 +109,23 @@
     }
     const name = (state.profile && state.profile.full_name) || state.session.user.email;
     const isAdmin = state.profile && ['admin', 'super_admin'].includes(state.profile.role);
+    const unread = state.notes.filter(n => !n.read_at).length;
+    const suspended = state.profile && state.profile.market_status === 'suspended';
     box.innerHTML = `
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
           <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Signed in</p>
           <p class="font-bold truncate">${esc(name)}</p>
         </div>
-        <button id="btn-logout" class="text-[11px] font-bold text-slate-300 hover:text-white underline">Log out</button>
+        <div class="flex items-center gap-3">
+          <button id="btn-notes" class="relative text-slate-200 hover:text-white" aria-label="Notifications${unread ? ` (${unread} new)` : ''}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0"/></svg>
+            ${unread ? `<span class="absolute -top-1.5 -right-2 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-amber-400 text-slate-900 text-[10px] font-bold flex items-center justify-center">${unread}</span>` : ''}
+          </button>
+          <button id="btn-logout" class="text-[11px] font-bold text-slate-300 hover:text-white underline">Log out</button>
+        </div>
       </div>
+      ${suspended ? '<p class="mt-3 text-xs font-bold bg-red-500/20 text-red-100 px-3 py-2">Your market account is suspended by the platform admin. You can view your orders but cannot buy, sell or update orders.</p>' : ''}
       <fieldset class="mt-3">
         <legend class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1.5">Current role</legend>
         <div class="flex bg-white/10 p-1 text-xs font-bold" role="radiogroup">
@@ -248,7 +260,7 @@
   function progress(o) {
     if (o.status === 'cancelled') return `<p class="text-xs text-slate-500">Cancelled ${when(o.cancelled_at)}</p>`;
     const at = STEPS.indexOf(o.status);
-    const labels = ['Order placed', 'Payment confirmed', 'Shipped', 'Completed'];
+    const labels = ['Order placed', 'Payment confirmed · ready to ship', 'Shipped', 'Completed'];
     return `<ol class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider">${labels.map((l, i) => `
       <li class="flex items-center gap-1 ${i <= at ? 'text-burgundy' : 'text-slate-300'}">
         <span class="w-2.5 h-2.5 rounded-full ${i <= at ? 'bg-burgundy' : 'bg-slate-200'}"></span><span class="hidden sm:inline">${l}</span>
@@ -305,6 +317,7 @@
         </form>
         <div class="flex gap-2">
           <button data-edit="${p.id}" class="${BTN_LINE}">Edit</button>
+          ${p.quantity > 0 ? `<button data-sold="${p.id}" class="${BTN_LINE}">Mark as sold</button>` : ''}
           <button data-toggle="${p.id}" class="${BTN_LINE}">${p.status === 'listed' ? 'Hide' : 'List again'}</button>
           <button data-del="${p.id}" class="${BTN} text-red-700 hover:bg-red-50">Delete</button>
         </div>
@@ -325,9 +338,11 @@
         <h3 class="px-4 py-3 border-b border-slate-200 text-sm font-bold flex justify-between">${title}<span class="text-slate-400">${list.length}</span></h3>
         <div class="divide-y divide-slate-100">${list.length ? list.map(o => `
           <div class="p-4 text-sm">
-            <p class="text-[11px] font-mono text-slate-400">#${shortId(o.id)} · ${when(o.created_at)}</p>
+            <p class="text-[11px] font-mono text-slate-500 break-all">Order ID ${esc(o.id)}</p>
+            <p class="text-[11px] text-slate-400">Ordered ${when(o.created_at)}</p>
             <p class="font-bold mt-1">${orderItems(o)}</p>
             <p class="text-xs text-slate-500 mt-0.5">Buyer: ${esc(o.buyer_name)} (${esc(o.buyer_email)})</p>
+            <p class="text-xs mt-0.5">Payment: ${o.status === 'pending_payment' ? '<b class="text-amber-700">waiting for confirmation</b>' : o.status === 'cancelled' ? '<b class="text-slate-500">cancelled</b>' : `<b class="text-emerald-700">received</b>${o.paid_at ? ' · ' + when(o.paid_at) : ''}`}</p>
             <p class="text-xs text-slate-500">${o.shipping_method === 'delivery' ? 'Home delivery' : 'In-person pickup'} · Total ${money(o.total)}</p>
             <p class="text-[11px] text-slate-400 mt-0.5">Last updated ${when(o.updated_at)}</p>
             ${act ? `<div class="flex gap-2 mt-3">
@@ -422,6 +437,23 @@
       </div>`);
     const f = $('detail-add');
     if (f) f.addEventListener('submit', async e => { e.preventDefault(); await addToCart(p.id, Math.max(1, +f.qty.value || 1)); dlg.close(); });
+  }
+
+  async function openNotes() {
+    openDialog(`${dlgHead('Notifications')}
+      <div class="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
+        ${state.notes.length ? state.notes.map(n => `
+          <div class="px-6 py-3 ${n.read_at ? '' : 'bg-amber-50'}">
+            <p class="text-sm ${n.read_at ? 'text-slate-600' : 'font-semibold'}">${esc(n.message)}</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">${when(n.created_at)}</p>
+          </div>`).join('') : '<p class="px-6 py-8 text-sm text-slate-500 text-center">No notifications yet. You will see new orders and status changes here.</p>'}
+      </div>`);
+    const unread = state.notes.filter(n => !n.read_at).map(n => n.id);
+    if (unread.length) {
+      await sb.from('market_notifications').update({ read_at: new Date().toISOString() }).in('id', unread);
+      state.notes.forEach(n => { if (!n.read_at) n.read_at = new Date().toISOString(); });
+      renderAccount();
+    }
   }
 
   function openAuth(mode) {
@@ -559,6 +591,14 @@
     if (t.id === 'btn-csv') return exportCsv();
     if (t.id === 'f-clear') { $('filters').reset(); $('f-stock').checked = true; return renderProducts(); }
     if (t.dataset.edit) return openListingForm(state.myListings.find(p => p.id === t.dataset.edit));
+    if (t.id === 'btn-notes') return openNotes();
+    if (t.dataset.sold) {
+      const p = state.myListings.find(x => x.id === t.dataset.sold);
+      if (!confirm(`Mark “${p.name}” as sold? Its available stock becomes 0 (sold elsewhere, e.g. in person).`)) return;
+      const { error } = await sb.from('market_products').update({ quantity: 0 }).eq('id', p.id);
+      if (error) return flash(friendly(error), true);
+      flash('Marked as sold.'); return refresh();
+    }
     if (t.dataset.toggle) {
       const p = state.myListings.find(x => x.id === t.dataset.toggle);
       const { error } = await sb.from('market_products').update({ status: p.status === 'listed' ? 'hidden' : 'listed' }).eq('id', p.id);
@@ -600,7 +640,7 @@
     state.session = session;
     state.profile = null;
     if (session) {
-      const { data } = await sb.from('profiles').select('full_name, email, role').eq('user_id', session.user.id).maybeSingle();
+      const { data } = await sb.from('profiles').select('full_name, email, role, market_status').eq('user_id', session.user.id).maybeSingle();
       state.profile = data;
     }
     await refresh();
@@ -609,4 +649,15 @@
     if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') setTimeout(() => onAuth(session), 0);
   });
   sb.auth.getSession().then(({ data }) => onAuth(data.session));
+  // Check for new notifications every 30 s (e.g. "New order" for the seller) without redrawing the page.
+  setInterval(async () => {
+    if (!me() || document.visibilityState !== 'visible' || dlg.open) return;
+    const { data } = await sb.from('market_notifications').select('*').eq('user_id', me()).order('created_at', { ascending: false }).limit(50);
+    if (!data) return;
+    const before = state.notes.filter(n => !n.read_at).length;
+    state.notes = data; renderAccount();
+    const fresh = data.filter(n => !n.read_at).length - before;
+    if (fresh > 0) await refresh();
+    if (fresh > 0) flash(`${fresh} new notification${fresh > 1 ? 's' : ''}: ${data[0].message}`);
+  }, 30000);
 })();

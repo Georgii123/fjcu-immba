@@ -457,5 +457,5 @@ where p.reviewed_at is not null and p.role <> 'pending'
   and not exists (select 1 from public.audit_log l where l.table_name = 'profiles' and l.action in ('APPROVE', 'REJECT'));
 
 -- ---------------------------------------------------------------------------
--- imMBA Market (buyer / seller / platform admin, orders, stock): see supabase/marketplace.sql
+-- imMBA Market (buyer / seller / platform admin, orders, stock): see supabase/marketplace.sql, then marketplace_v2.sql
 -- ---------------------------------------------------------------------------

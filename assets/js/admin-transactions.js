@@ -7,7 +7,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const cfg = window.SUPABASE_CONFIG;
-  let sb = null, orders = [], settings = null;
+  let sb = null, orders = [], settings = null, members = [], listings = [], meId = null, view = 'tx';
 
   const STATUS = {
     pending_payment: ['Waiting for payment', 'bg-amber-100 text-amber-900'],
@@ -36,6 +36,13 @@
     ]);
     if (o.error) throw o.error;
     orders = o.data; settings = s.data;
+    const [m, l] = await Promise.all([
+      sb.rpc('market_admin_members'),
+      sb.from('market_products').select('*').order('updated_at', { ascending: false })
+    ]);
+    if (m.error) throw m.error;
+    if (l.error) throw l.error;
+    members = m.data || []; listings = l.data || [];
     if (settings) { $('fee').value = settings.platform_fee; $('delivery').value = settings.delivery_fee; }
   }
 
@@ -75,6 +82,49 @@
       </tr>`).join('');
   }
 
+  function renderMembers() {
+    const q = $('m-q').value.trim().toLowerCase();
+    const list = members.filter(m => !q || `${m.full_name} ${m.email}`.toLowerCase().includes(q));
+    $('m-rows').innerHTML = list.length ? list.map(m => {
+      const susp = m.market_status === 'suspended';
+      return `<tr class="${susp ? 'bg-red-50/60' : ''}">
+        <td class="px-4 py-3"><p class="font-bold">${esc(m.full_name || '—')}</p><p class="text-xs text-slate-500">${esc(m.email)}</p></td>
+        <td class="px-4 py-3 text-xs">${when(m.joined)}</td>
+        <td class="px-4 py-3 text-xs">${m.active_listings} listed / ${m.listings}</td>
+        <td class="px-4 py-3">${m.orders_bought}</td><td class="px-4 py-3">${m.orders_sold}</td>
+        <td class="px-4 py-3 text-right font-bold">${money(m.sales_amount)}</td>
+        <td class="px-4 py-3"><span class="inline-block px-2 py-0.5 text-[11px] font-bold ${susp ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-900'}">${susp ? 'Suspended' : 'Active'}</span></td>
+        <td class="px-4 py-3 text-right">${m.user_id === meId ? '<span class="text-xs text-slate-400">This is you</span>'
+          : `<button data-member="${m.user_id}" data-to="${susp ? 'active' : 'suspended'}" class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${susp ? 'bg-slate-900 hover:bg-burgundy text-white' : 'border border-red-300 text-red-700 hover:bg-red-50'}">${susp ? 'Reactivate' : 'Suspend'}</button>`}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="8" class="px-4 py-6 text-center text-slate-500">No members found.</td></tr>';
+  }
+
+  function renderListings() {
+    const q = $('l-q').value.trim().toLowerCase(), st = $('l-status').value;
+    const list = listings.filter(p => (!q || `${p.name} ${p.seller_name}`.toLowerCase().includes(q)) &&
+      (!st || (st === 'soldout' ? p.quantity <= 0 : p.status === st)));
+    $('l-rows').innerHTML = list.length ? list.map(p => `<tr>
+        <td class="px-4 py-3 font-bold">${esc(p.name)}</td><td class="px-4 py-3 text-xs">${esc(p.seller_name)}</td>
+        <td class="px-4 py-3 text-xs">${esc(p.category)}</td><td class="px-4 py-3 text-right">${money(p.price)}</td>
+        <td class="px-4 py-3 text-right ${p.quantity <= 0 ? 'text-red-700 font-bold' : ''}">${p.quantity <= 0 ? 'Sold out' : p.quantity}</td>
+        <td class="px-4 py-3 text-xs font-bold ${p.status === 'listed' ? 'text-emerald-700' : 'text-slate-500'}">${p.status === 'listed' ? 'Listed' : 'Hidden'}</td>
+        <td class="px-4 py-3 text-xs">${when(p.updated_at)}</td></tr>`).join('')
+      : '<tr><td colspan="7" class="px-4 py-6 text-center text-slate-500">No listings found.</td></tr>';
+  }
+
+  function showView(v) {
+    view = v;
+    ['tx', 'members', 'listings'].forEach(k => $('view-' + k).classList.toggle('hidden', k !== v));
+    document.querySelectorAll('#views [data-view]').forEach(b => {
+      const on = b.dataset.view === v;
+      b.setAttribute('aria-selected', String(on));
+      b.className = `px-4 py-2 border ${on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 hover:border-slate-900'}`;
+    });
+    if (v === 'members') renderMembers();
+    if (v === 'listings') renderListings();
+  }
+
   function exportCsv() {
     const list = filtered();
     if (!list.length) return flash('Nothing to export with these filters.', true);
@@ -88,6 +138,7 @@
   }
 
   async function enterApp(session) {
+    meId = session.user.id;
     $('auth').classList.add('hidden');
     $('app').classList.remove('hidden');
     $('btn-logout').classList.remove('hidden');
@@ -95,7 +146,7 @@
     em.textContent = session.user.email || '';
     em.classList.toggle('hidden', !em.textContent);
     try { await load(); } catch (e) { flash(errText(e), true); orders = []; }
-    render();
+    render(); showView(view);
   }
 
   function initPage() {
@@ -109,6 +160,21 @@
     $('filters').addEventListener('input', render);
     $('filters').addEventListener('change', render);
     $('btn-csv').addEventListener('click', exportCsv);
+    $('views').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) showView(b.dataset.view); });
+    $('m-q').addEventListener('input', renderMembers);
+    $('l-q').addEventListener('input', renderListings);
+    $('l-status').addEventListener('change', renderListings);
+    $('m-rows').addEventListener('click', async e => {
+      const b = e.target.closest('button[data-member]'); if (!b) return;
+      const m = members.find(x => x.user_id === b.dataset.member);
+      const to = b.dataset.to;
+      if (!confirm(to === 'suspended' ? `Suspend ${m.email}? They cannot buy, sell or update orders, and their listings are hidden.` : `Reactivate ${m.email}? They can buy and sell again (they re-list hidden items themselves).`)) return;
+      b.disabled = true;
+      const { error } = await sb.rpc('market_set_member_status', { p_user: m.user_id, p_status: to });
+      if (error) { b.disabled = false; return flash(errText(error), true); }
+      flash(to === 'suspended' ? `${m.email} is suspended.` : `${m.email} is active again.`);
+      await load(); render(); showView('members');
+    });
     $('fee-form').addEventListener('submit', async e => {
       e.preventDefault();
       const fee = Math.round(+$('fee').value), delivery = Math.round(+$('delivery').value);

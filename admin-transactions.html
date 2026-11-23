@@ -57,6 +57,14 @@
       <p class="text-sm text-slate-600 mb-6 max-w-3xl">All imMBA Market transactions. Monitoring is read-only: the platform admin sees every order but does not act as buyer or seller.
         <a href="market.html" class="font-bold text-burgundy hover:underline">Open the market &rarr;</a></p>
 
+      <!-- Views: transactions / members / listings -->
+      <div id="views" class="flex flex-wrap gap-2 mb-6 text-xs font-bold" role="tablist" aria-label="Marketplace views">
+        <button type="button" role="tab" data-view="tx" class="px-4 py-2 border border-slate-900 bg-slate-900 text-white">Transactions</button>
+        <button type="button" role="tab" data-view="members" class="px-4 py-2 border border-slate-300 hover:border-slate-900">Members (manage users)</button>
+        <button type="button" role="tab" data-view="listings" class="px-4 py-2 border border-slate-300 hover:border-slate-900">Listings (marketplace activity)</button>
+      </div>
+
+      <div id="view-tx">
       <!-- Totals -->
       <div id="totals" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
 
@@ -102,6 +110,38 @@
         <p id="empty-msg" class="hidden p-6 text-sm text-slate-500 text-center"></p>
       </div>
       <p class="mt-3 text-xs text-slate-500">“Needs attention” = an open order with no change for 7 days. Completed orders are never deleted.</p>
+      </div>
+
+      <!-- Members: platform admin manages marketplace users -->
+      <div id="view-members" class="hidden">
+        <p class="text-sm text-slate-600 mb-4 max-w-3xl">Every account may buy and sell (approved by default). Suspend a member to stop them buying, selling and updating orders; their listings are hidden. Reactivate to allow them again.</p>
+        <input id="m-q" type="search" placeholder="Search name or email…" aria-label="Search members" class="w-full sm:w-80 border border-slate-300 px-3 py-2 text-sm mb-4 focus:outline-none focus:border-burgundy">
+        <div class="bg-white border border-slate-200 overflow-x-auto">
+          <table class="w-full text-sm text-left min-w-[860px]">
+            <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600"><tr>
+              <th class="px-4 py-3">Member</th><th class="px-4 py-3">Joined</th><th class="px-4 py-3">Listings</th><th class="px-4 py-3">Orders bought</th>
+              <th class="px-4 py-3">Orders sold</th><th class="px-4 py-3 text-right">Completed sales</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Action</th></tr></thead>
+            <tbody id="m-rows" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Listings: review marketplace activity (read-only) -->
+      <div id="view-listings" class="hidden">
+        <p class="text-sm text-slate-600 mb-4 max-w-3xl">Every product on the market, including hidden and sold-out ones. Read-only: sellers manage their own listings.</p>
+        <div class="flex flex-wrap gap-3 mb-4 text-sm">
+          <input id="l-q" type="search" placeholder="Search product or seller…" aria-label="Search listings" class="w-full sm:w-80 border border-slate-300 px-3 py-2 focus:outline-none focus:border-burgundy">
+          <select id="l-status" aria-label="Listing status" class="border border-slate-300 px-2 py-2"><option value="">All listings</option><option value="listed">Listed</option><option value="hidden">Hidden</option><option value="soldout">Sold out</option></select>
+        </div>
+        <div class="bg-white border border-slate-200 overflow-x-auto">
+          <table class="w-full text-sm text-left min-w-[760px]">
+            <thead class="bg-slate-100 text-[11px] uppercase tracking-wider text-slate-600"><tr>
+              <th class="px-4 py-3">Product</th><th class="px-4 py-3">Seller</th><th class="px-4 py-3">Category</th><th class="px-4 py-3 text-right">Price</th>
+              <th class="px-4 py-3 text-right">Stock</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Last updated</th></tr></thead>
+            <tbody id="l-rows" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </main>
 
