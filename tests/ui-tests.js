@@ -33,8 +33,10 @@ function fakeDb() {
 const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
 const session = (uid, email) => ({ access_token: `${b64({ alg: 'HS256' })}.${b64({ sub: uid, exp: 4102444800, role: 'authenticated' })}.sig`, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: 4102444800, user: { id: uid, email, aud: 'authenticated', role: 'authenticated', email_confirmed_at: '2026-11-01T00:00:00Z' } });
 
-async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, page = 'market.html', db = fakeDb(), hash = '' } = {}) {
+async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, page = 'market.html', db = fakeDb(), hash = '', lang = 'en' } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+  // the site is Chinese by default; the original tests check the English texts, so they ask for English
+  await ctx.addInitScript(l => { try { localStorage.setItem('immba_lang', l); } catch (e) { /* storage blocked */ } }, lang);
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
@@ -231,6 +233,66 @@ const visible = (p, sel) => p.locator(sel).first().isVisible().catch(() => false
     const appShown = await visible(p, '#app');
     record('4 Access control', 'Buyer types the admin URL (admin-transactions.html)', 'blocked, no transactions shown', `"${h}", admin area visible: ${appShown}`, h === 'Market account' && !appShown);
     await p.screenshot({ path: path.join(SHOTS, 'buyer-on-admin-url.png') });
+    allErrors.push(...errors);
+  }
+
+  // ── 12 Chinese (the site is Chinese by default; the 中文 / EN button switches the Market live) ──
+  const leftover = async (p, sel, allow) => {   // English words still showing in the Chinese page (names/emails/product names excluded)
+    const raw = await p.locator(sel).evaluateAll(els => els.map(e => e.innerText).join(' \n '));
+    const w = raw.replace(/\S+@\S+/g, '').replace(allow || /$^/, '').replace(/imMBA|NT\$/g, '').match(/[A-Za-z]{3,}/g);
+    return w ? [...new Set(w)].slice(0, 8) : [];
+  };
+  {
+    const { p, errors } = await openPage(browser, { lang: 'zh' });
+    record('12 Chinese', 'Market opens in Chinese by default', 'title and page language are Chinese', `${await text(p, 'h1')} | ${await p.evaluate(() => document.documentElement.lang)}`, (await text(p, 'h1')) === 'imMBA 市集' && (await p.evaluate(() => document.documentElement.lang)) === 'zh-TW');
+    const card = await text(p, '#products article');
+    record('12 Chinese', 'Product cards: category, stock and button in Chinese', '電子產品 / 庫存偏低（剩 1 件） / 加入購物車', card.replace(/\s+/g, ' ').slice(0, 90), /電子產品/.test(card) && /庫存偏低（剩 1 件）/.test(card) && /加入購物車/.test(card));
+    record('12 Chinese', 'Page text (visitor) has no English left over', 'no English words', JSON.stringify(await leftover(p, '#account-box, #summary, #filters, h2, main p', /Test Seller|Amy Lin|Alumni Bluetooth Earbuds|Laptop Sleeve|Strategy & Marketing \(textbook\)|Sample item[^\n]*/g)), (await leftover(p, '#account-box, #summary, #filters, h2, main p', /Test Seller|Amy Lin|Alumni Bluetooth Earbuds|Laptop Sleeve|Strategy & Marketing \(textbook\)|Sample item[^\n]*/g)).length === 0);
+    await p.click('[data-add="p2"]');
+    record('12 Chinese', 'Visitor clicks “加入購物車”', 'login dialog in Chinese', await text(p, '#dlg h2'), (await text(p, '#dlg h2')) === '登入');
+    await p.click('#a-submit');
+    record('12 Chinese', 'Log in with empty email', 'Chinese error', await text(p, '#a-err'), (await text(p, '#a-err')) === '請輸入您的電子郵件。');
+    await p.fill('#a-email', 'buyer@example.com'); await p.fill('#a-pw', 'WrongPass1'); await p.click('#a-submit'); await p.waitForTimeout(400);
+    record('12 Chinese', 'Log in with wrong password', 'Chinese error', await text(p, '#a-err'), (await text(p, '#a-err')) === '電子郵件或密碼錯誤。');
+    await p.click('[data-close]'); await p.click('[data-auth="register"]');
+    await p.fill('#a-pw', 'abc1');
+    record('12 Chinese', 'Password rule + strength meter in Chinese', '密碼至少需要 8 個字元。', await text(p, '#a-meter p'), /密碼至少需要 8 個字元。/.test(await text(p, '#a-meter p')));
+    await p.screenshot({ path: path.join(SHOTS, 'zh-register.png') });
+    await p.click('[data-close]');
+    await p.click('#btn-lang-en'); await p.waitForTimeout(300);
+    record('12 Chinese', 'EN button switches the Market to English at once', 'imMBA Market / Browse products', `${await text(p, 'h1')} / ${await text(p, '#browse-title')} / ${await text(p, '#products article button[data-add]')}`, (await text(p, 'h1')) === 'imMBA Market' && (await text(p, '#browse-title')) === 'Browse products' && /Add to cart/i.test(await text(p, '#products article button[data-add]')));
+    await p.click('#btn-lang-zh'); await p.waitForTimeout(300);
+    record('12 Chinese', '中文 button switches back to Chinese', '瀏覽商品', await text(p, '#browse-title'), (await text(p, '#browse-title')) === '瀏覽商品');
+    allErrors.push(...errors);
+  }
+  {
+    const { p, errors } = await openPage(browser, { uid: BUYER, lang: 'zh' });
+    await p.click('[data-add="p2"]'); await p.waitForTimeout(400);
+    record('12 Chinese', 'Add to cart message in Chinese', '已加入購物車…', await text(p, '#flash'), /^已加入購物車：imMBA Laptop Sleeve/.test(await text(p, '#flash')));
+    const eng = await leftover(p, '#account-box, #summary, #filters, #cart, #orders-title', /Sleeve|Laptop|Test Buyer/g);
+    record('12 Chinese', 'Buyer screen (account, cart, totals) has no English left over', 'no English words', JSON.stringify(eng), eng.length === 0);
+    await p.click('[data-detail="p2"]'); await p.fill('#detail-add input[name="qty"]', '6'); await p.click('#detail-add button'); await p.waitForTimeout(200);
+    record('12 Chinese', 'Quantity above stock (6 of 5)', '只剩 5 件…', await text(p, '#detail-err'), /只剩 5 件/.test(await text(p, '#detail-err')));
+    await p.fill('#detail-add input[name="qty"]', '0'); await p.click('#detail-add button');
+    record('12 Chinese', 'Quantity = 0', '請至少選 1 件。', await text(p, '#detail-err'), (await text(p, '#detail-err')) === '請至少選 1 件。');
+    await p.click('[data-close]');
+    await p.click('#btn-checkout'); await p.waitForTimeout(500);
+    record('12 Chinese', 'Order confirmation in Chinese', '訂單已送出…', await text(p, '#flash'), /^訂單已送出（共 1 筆）/.test(await text(p, '#flash')));
+    await p.screenshot({ path: path.join(SHOTS, 'zh-buyer.png') });
+    allErrors.push(...errors);
+  }
+  {
+    const { p, errors } = await openPage(browser, { uid: SELLER, mode: 'seller', lang: 'zh' });
+    await p.click('#btn-notes'); await p.waitForTimeout(300);
+    record('12 Chinese', 'Order notification (written in English by the database) shows in Chinese', '新訂單 #abcd1234，買家：Test Buyer（NT$900）…', await text(p, '#dlg p'), /^新訂單 #abcd1234，買家：Test Buyer（NT\$900）。收到款項後請確認付款。$/.test(await text(p, '#dlg p')));
+    await p.click('[data-close]');
+    const eng = await leftover(p, '#account-box, #summary, #seller-view h2, #seller-view h3, #seller-view th, #listings button, #seller-orders button', /Test Seller|Test Buyer/g);
+    record('12 Chinese', 'Seller screen (headings, buttons, tables) has no English left over', 'no English words', JSON.stringify(eng), eng.length === 0);
+    await p.click('#btn-new'); await p.fill('#l-name', 'Test item'); await p.fill('#l-price', '-1'); await p.fill('#l-qty', '1'); await p.click('#l-save');
+    record('12 Chinese', 'Seller price = -1', 'Chinese error', await text(p, '#l-err'), /^價格必須是 NT\$0 到 NT\$10,000,000 之間的整數。$/.test(await text(p, '#l-err')));
+    await p.screenshot({ path: path.join(SHOTS, 'zh-seller-form.png') });
+    await p.click('[data-close]');
+    await p.screenshot({ path: path.join(SHOTS, 'zh-seller.png'), fullPage: true });
     allErrors.push(...errors);
   }
 

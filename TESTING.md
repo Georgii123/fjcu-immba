@@ -10,8 +10,8 @@ System under test: imMBA Market (`market.html`, `admin-transactions.html`, datab
 | | Test cases | Passed |
 |---|---|---|
 | Database tests (`tests/db-tests.sql`, run on the live Supabase database inside a transaction that is rolled back) | 53 | 53 |
-| Browser tests (`tests/ui-tests.js`, real Chromium with a fake backend) | 39 | 39 |
-| **Total (after fixes)** | **92** | **92** |
+| Browser tests (`tests/ui-tests.js`, real Chromium with a fake backend): 39 in English + 17 in Chinese | 56 | 56 |
+| **Total (after fixes)** | **109** | **109** |
 
 ## Break it → Fix it: problems found and fixed
 
@@ -56,6 +56,10 @@ System under test: imMBA Market (`market.html`, `admin-transactions.html`, datab
 ## Test cases by type
 
 Format from the lecture: **Action → Expected → Actual → Result.** “Actual” is the real output of the test run.
+
+### Chinese (中文) support
+
+The Market follows the site's 中文 / EN button (Chinese is the default, like the rest of the site; the choice is remembered). Everything a user sees is translated: page texts, buttons, forms, validation and error messages, confirmations, order statuses, and even the order notifications that the database writes in English (they are translated when shown). Back-office pages (`admin-*.html`) stay English on purpose, like all other back-office pages. Browser tests #40–#56 (type "12 Chinese") check: default language, product cards, no English left over on the visitor / buyer / seller screens, login + password errors, quantity errors, order confirmation, translated notification, live switching 中文 ⇄ EN.
 
 ### 1. Functional testing
 

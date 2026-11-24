@@ -790,6 +790,8 @@ const i18n = {
     hero_cta_apply: 'Apply Now',
     hero_cta_explore: 'Explore the Program',
     nav_collapse: 'Collapse main menu',
+    topbar_notice: 'Georgii Zhukov F15381061. This is a course project not an official website',
+    topbar_official: 'Official imMBA website',
     nav_expand: 'Expand main menu'
   },
   zh: {
@@ -890,6 +892,8 @@ const i18n = {
     hero_cta_apply: '立即報名',
     hero_cta_explore: '了解學程',
     nav_collapse: '收合主選單',
+    topbar_notice: 'Georgii Zhukov F15381061。這是課程專案，並非官方網站',
+    topbar_official: '輔仁大學 imMBA 官方網站',
     nav_expand: '展開主選單'
   }
 };

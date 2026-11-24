@@ -16,10 +16,10 @@
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-x-6">
       <div class="hidden lg:block" aria-hidden="true"></div>
       <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-        <span class="font-medium text-slate-300">Georgii Zhukov F15381061. This is a course project not an official website</span>
+        <span class="font-medium text-slate-300" data-i18n="topbar_notice">Georgii Zhukov F15381061. This is a course project not an official website</span>
         <span class="hidden sm:inline text-slate-600" aria-hidden="true">|</span>
         <span class="text-slate-300 font-medium whitespace-nowrap">
-          <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition">Official imMBA website <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
+          <a href="https://www.management.fju.edu.tw/esubweb/immbaengindex/" target="_blank" rel="noopener" class="hover:text-white transition"><span data-i18n="topbar_official">Official imMBA website</span> <svg class="inline-block w-3 h-3 ml-0.5 -mt-0.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14M19 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h5"/></svg></a>
         </span>
       </div>
       <!-- Tools: collapse / expand the header. When collapsed, the language switch and Apply button move in here. -->
