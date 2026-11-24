@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mobileBtn && mobileMenu) {
     mobileBtn.addEventListener('click', () => {
       mobileMenu.classList.toggle('hidden');
+      mobileBtn.setAttribute('aria-expanded', String(!mobileMenu.classList.contains('hidden')));
     });
   }
 });

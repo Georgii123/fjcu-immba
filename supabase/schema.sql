@@ -459,3 +459,6 @@ where p.reviewed_at is not null and p.role <> 'pending'
 -- ---------------------------------------------------------------------------
 -- imMBA Market (buyer / seller / platform admin, orders, stock): see supabase/marketplace.sql, then marketplace_v2.sql
 -- ---------------------------------------------------------------------------
+
+-- Testing & verification (2026-11-24): the security check flagged alumni_touch for a mutable search_path. Pinned now.
+alter function public.alumni_touch() set search_path = public;

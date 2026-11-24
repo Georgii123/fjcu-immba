@@ -37,7 +37,7 @@ const AdminAuth = (() => {
 
   const TEXT = {
     login:    { title: 'Admin login',            help: () => `Sign in with your admin email and password to manage ${area}.`, submit: 'Log in' },
-    register: { title: 'Register',               help: () => 'Ask for back-office access. Confirm your email, then wait for the site owner to approve your request. Choose a password of at least 6 characters.', submit: 'Create account' },
+    register: { title: 'Register',               help: () => 'Ask for back-office access. Confirm your email, then wait for the site owner to approve your request. Choose a password of at least 8 characters, with letters and numbers.', submit: 'Create account' },
     forgot:   { title: 'Forgot password',  help: () => 'Enter your email and we will send you a link to choose a new password.', submit: 'Send reset link' },
     reset:    { title: 'Choose a new password',  help: () => 'Type the new password twice, then save it.', submit: 'Save new password' }
   };
@@ -99,13 +99,22 @@ const AdminAuth = (() => {
   const showError = msg => { $('auth-error').textContent = msg; $('auth-error').classList.remove('hidden'); $('auth-info').classList.add('hidden'); };
   const showInfo = msg => { $('auth-info').textContent = msg; $('auth-info').classList.remove('hidden'); $('auth-error').classList.add('hidden'); };
 
+  // Same password rule as the Market page: 8+ characters, letters AND numbers, not a common password.
+  const COMMON = ['password', 'password1', '12345678', '123456789', 'qwerty123', 'abc12345', 'iloveyou1', 'immba123', 'fujen123'];
+  function pwProblem(pw) {
+    if (pw.length < 8) return 'Use at least 8 characters.';
+    if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return 'Use both letters and numbers.';
+    if (COMMON.includes(pw.toLowerCase())) return 'This password is too common. Choose another one.';
+    return '';
+  }
+
   function friendly(ex) {
     const msg = (ex && (ex.message || ex.error_description)) || String(ex);
     if (/Invalid login credentials/i.test(msg)) return 'Wrong email or password (or the email is not confirmed yet).';
     if (/rate limit|too many/i.test(msg)) return 'Too many tries. Wait a few minutes and try again.';
     if (/Failed to fetch|NetworkError|network/i.test(msg)) return 'Cannot reach the server. Check your internet connection and try again.';
     if (/same password|different from the old/i.test(msg)) return 'Choose a password you have not used before.';
-    if (/Password should be|at least/i.test(msg)) return 'The password is too short. Use at least 6 characters.';
+    if (/Password should be|at least|weak|pwned|compromised/i.test(msg)) return 'This password is too weak. Use at least 8 characters with letters and numbers, and one you have not used elsewhere.';
     return msg;
   }
 
@@ -119,7 +128,7 @@ const AdminAuth = (() => {
     if (mode === 'register' && name.length < 2) return showError('Enter your full name, so the site owner knows who is asking.');
     if (needEmail && !/^\S+@\S+\.\S+$/.test(email)) return showError('Enter a valid email address.');
     if (mode !== 'forgot' && !pw) return showError(mode === 'login' ? 'Enter your password.' : 'Choose a password.');
-    if ((mode === 'register' || mode === 'reset') && pw.length < 6) return showError('Use at least 6 characters.');
+    if ((mode === 'register' || mode === 'reset') && pwProblem(pw)) return showError(pwProblem(pw));
     if ((mode === 'register' || mode === 'reset') && pw !== pw2) return showError('The two passwords do not match.');
 
     const btn = $('auth-submit'); btn.disabled = true;

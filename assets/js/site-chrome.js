@@ -47,7 +47,7 @@
         </div>
 
         <!-- Mobile Toggle Button -->
-        <button id="mobile-menu-btn" class="lg:hidden p-2 text-slate-700">
+        <button id="mobile-menu-btn" type="button" aria-label="Menu" aria-controls="mobile-menu" aria-expanded="false" class="lg:hidden p-2 text-slate-700">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>

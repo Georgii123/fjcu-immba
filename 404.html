@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Vercel shows this file for any address that does not exist; <base> keeps the links working from any depth -->
+  <base href="/">
+  <title>Page not found | FJCU imMBA</title>
+  <meta name="robots" content="noindex">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <script>
+    tailwind.config = { theme: { extend: { colors: { burgundy: '#800020', burgundyDark: '#5A0016' } } } };
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-burgundy selection:text-white">
+
+  <script src="assets/js/site-chrome.js" data-page="none"></script>
+
+  <div class="page-top-spacer" aria-hidden="true"></div>
+
+  <main class="py-24 bg-slate-50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="font-serif text-6xl font-bold text-burgundy mb-4">404</div>
+      <h1 class="font-serif text-3xl font-bold text-slate-900 mb-3">Page not found</h1>
+      <p class="text-slate-600 text-base leading-relaxed mb-8">This address does not exist. It may have been typed wrongly, or the page may have moved. Use the menu above, or go back to the start.</p>
+      <a href="index.html" class="inline-block px-10 py-3.5 bg-burgundy hover:bg-burgundyDark text-white font-bold text-xs uppercase tracking-widest shadow-md transition">Back to the home page</a>
+    </div>
+  </main>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
