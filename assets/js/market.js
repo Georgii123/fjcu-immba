@@ -49,7 +49,7 @@
     session: null, profile: null,
     mode: (() => { try { return localStorage.getItem('market_mode') || 'buyer'; } catch { return 'buyer'; } })(),
     products: [], cart: [], buyerOrders: [], sellerOrders: [], myListings: [], notes: [],
-    settings: { platform_fee: 4, delivery_fee: 80 }, shipping: 'pickup'
+    settings: { platform_fee: 4, delivery_fee: 110, cvs_fee: 65, island_fee: 200 }, shipping: 'pickup', shipKind: 'delivery', shipTo: ''
   };
 
   // ───────── helpers ─────────
@@ -57,7 +57,14 @@
   const money = n => 'NT$' + Number(n || 0).toLocaleString('en-US');
   const when = d => d ? new Date(d).toLocaleString(isZh() ? 'zh-TW' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   const shortId = id => String(id).slice(0, 8);
-  const shipL = m => (m === 'delivery' ? t('Home delivery', '宅配') : t('In-person pickup', '面交取貨'));
+  // Delivery choice: receive in person (free) or a shipment within Taiwan (price depends on the service).
+  const SHIP = {
+    cvs:      ['Store pickup (7-ELEVEN / FamilyMart)', '超商取貨（7-ELEVEN／全家）', 'cvs_fee'],
+    delivery: ['Home delivery, main island', '宅配到府，台灣本島', 'delivery_fee'],
+    island:   ['Home delivery, offshore islands', '宅配到府，離島（澎湖、金門、馬祖）', 'island_fee']
+  };
+  const shipFee = m => (SHIP[m] ? state.settings[SHIP[m][2]] : 0);
+  const shipL = m => (SHIP[m] ? t('Shipment: ', '寄送：') + t(SHIP[m][0], SHIP[m][1]) : t('Receive in person', '面交（當面取貨）'));
   const me = () => state.session && state.session.user.id;
   const BTN = 'px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition disabled:opacity-50';
   const BTN_DARK = `${BTN} bg-slate-900 hover:bg-burgundy text-white`;
@@ -92,6 +99,8 @@
       [/^Log in with a confirmed email to place an order\.$/, () => '請先以已驗證的電子郵件登入，才能下單。'],
       [/^Your cart is empty\.$/, () => '您的購物車是空的。'],
       [/^Unknown shipping method\.$/, () => '不明的運送方式。'],
+      [/^Enter the delivery details \(name, phone, address or store\)\.$/, () => '請填寫收件資料（姓名、電話、地址或超商門市）。'],
+      [/^The delivery details are too long \(300 characters at most\)\.$/, () => '收件資料太長（最多 300 個字元）。'],
       [/^You cannot buy your own product \((.+)\)\.$/, x => `您不能購買自己的商品（${x[1]}）。`],
       [/^"(.+)" is no longer for sale\.$/, x => `「${x[1]}」已經不再販售。`],
       [/^Only (\d+) left of "(.+)"\.$/, x => `「${x[2]}」只剩 ${x[1]} 件。`],
@@ -153,7 +162,7 @@
     state.products = data;
   }
   async function loadSettings() {
-    const { data } = await sb.from('market_settings').select('platform_fee, delivery_fee').eq('id', 1).maybeSingle();
+    const { data } = await sb.from('market_settings').select('platform_fee, delivery_fee, cvs_fee, island_fee').eq('id', 1).maybeSingle();
     if (data) state.settings = data;
   }
   async function loadMine() {
@@ -302,7 +311,7 @@
     const items = state.cart;
     const subtotal = items.reduce((n, c) => n + c.qty * c.market_products.price, 0);
     const sellers = new Set(items.map(c => c.market_products.seller_id)).size;
-    const ship = state.shipping === 'delivery' ? state.settings.delivery_fee * sellers : 0;
+    const ship = shipFee(state.shipping) * sellers;
     el.innerHTML = `
       <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
         <h2 id="cart-title" class="font-serif text-xl font-bold">${t('Shopping cart', '購物車')}</h2>
@@ -329,8 +338,14 @@
       <div class="p-5 border-t border-slate-200 space-y-3">
         <fieldset>
           <legend class="${LABEL}">${t('Shipping method', '運送方式')}</legend>
-          <label class="flex items-center gap-2 text-sm"><input type="radio" name="ship" value="pickup" class="accent-[#800020]" ${state.shipping === 'pickup' ? 'checked' : ''}> ${t('In-person pickup (free)', '面交取貨（免費）')}</label>
-          <label class="flex items-center gap-2 text-sm"><input type="radio" name="ship" value="delivery" class="accent-[#800020]" ${state.shipping === 'delivery' ? 'checked' : ''}> ${t('Home delivery (', '宅配（')}${money(state.settings.delivery_fee)}${sellers > 1 ? t(' per seller', '，每位賣家') : ''}${t(')', '）')}</label>
+          <label class="flex items-center gap-2 text-sm"><input type="radio" name="ship" value="pickup" class="accent-[#800020]" ${state.shipping === 'pickup' ? 'checked' : ''}> ${t('Receive in person (free)', '面交（當面取貨，免運費）')}</label>
+          <label class="flex items-center gap-2 text-sm"><input type="radio" name="ship" value="ship" class="accent-[#800020]" ${state.shipping !== 'pickup' ? 'checked' : ''}> ${t('Shipment (within Taiwan)', '寄送（台灣境內）')}</label>
+          ${state.shipping !== 'pickup' ? `<label class="block mt-2"><span class="sr-only">${t('Shipping service', '寄送方式')}</span>
+            <select id="ship-kind" class="w-full border border-slate-300 px-2 py-2 text-sm focus:outline-none focus:border-burgundy">
+              ${Object.keys(SHIP).map(k => `<option value="${k}" ${state.shipping === k ? 'selected' : ''}>${money(shipFee(k))} · ${t(SHIP[k][0], SHIP[k][1])}</option>`).join('')}
+            </select></label>
+          <label class="block mt-2"><span class="${LABEL}">${t('Delivery details', '收件資料')}</span>
+            <textarea id="ship-to" rows="3" maxlength="300" placeholder="${t('Recipient name, phone, address (or store name and number)', '收件人姓名、電話、地址（或超商店名與店號）')}" class="${FIELD}">${esc(state.shipTo)}</textarea></label>${sellers > 1 ? `<p class="text-[11px] text-slate-500 mt-1">${t('The shipping fee is charged once per seller.', '運費按每位賣家各收一次。')}</p>` : ''}` : ''}
         </fieldset>
         <dl class="bg-slate-50 p-3 text-sm space-y-1">
           <div class="flex justify-between"><dt class="text-slate-500">${t('Subtotal', '小計')}</dt><dd>${money(subtotal)}</dd></div>
@@ -366,6 +381,7 @@
             <p class="text-[11px] font-mono text-slate-400">${t('Order {id} · {when}', '訂單 {id} · {when}', { id: shortId(o.id), when: when(o.created_at) })}</p>
             <p class="font-bold mt-1">${orderItems(o)}</p>
             <p class="text-xs text-slate-500 mt-0.5">${t('Seller: ', '賣家：')}${esc(o.seller_name)} · ${shipL(o.shipping_method)}</p>
+            ${o.ship_to ? `<p class="text-xs text-slate-500 mt-0.5 whitespace-pre-line">${t('Deliver to: ', '收件資料：')}${esc(o.ship_to)}</p>` : ''}
           </div>
           <div class="text-right">${pill(o.status)}<p class="font-serif text-lg font-bold mt-1">${money(o.total)}</p></div>
         </div>
@@ -430,6 +446,7 @@
             <p class="text-xs text-slate-500 mt-0.5">${t('Buyer: ', '買家：')}${esc(o.buyer_name)} (${esc(o.buyer_email)})</p>
             <p class="text-xs mt-0.5">${t('Payment: ', '付款：')}${o.status === 'pending_payment' ? `<b class="text-amber-700">${t('waiting for confirmation', '等待確認')}</b>` : o.status === 'cancelled' ? `<b class="text-slate-500">${t('cancelled', '已取消')}</b>` : `<b class="text-emerald-700">${t('received', '已收款')}</b>${o.paid_at ? ' · ' + when(o.paid_at) : ''}`}</p>
             <p class="text-xs text-slate-500">${shipL(o.shipping_method)} · ${t('Total {x}', '總額 {x}', { x: money(o.total) })}</p>
+            ${o.ship_to ? `<p class="text-xs font-semibold mt-0.5 whitespace-pre-line">${t('Ship to: ', '寄送至：')}${esc(o.ship_to)}</p>` : ''}
             <p class="text-[11px] text-slate-400 mt-0.5">${t('Last updated {when}', '最後更新 {when}', { when: when(o.updated_at) })}</p>
             ${act ? `<div class="flex gap-2 mt-3">
               <button data-act="${act}" data-order="${o.id}" class="${BTN_DARK}">${label}</button>
@@ -476,10 +493,10 @@
     const list = state.sellerOrders.filter(o => !sel || (o.created_at || '').slice(0, 7) === sel);
     if (!list.length) return flash(t('There are no transactions to export.', '沒有可匯出的交易。'), true);
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const head = ['order_id', 'created_at', 'status', 'buyer_name', 'buyer_email', 'items', 'shipping_method', 'subtotal', 'shipping_fee', 'platform_fee', 'total', 'paid_at', 'shipped_at', 'completed_at'];
+    const head = ['order_id', 'created_at', 'status', 'buyer_name', 'buyer_email', 'items', 'shipping_method', 'ship_to', 'subtotal', 'shipping_fee', 'platform_fee', 'total', 'paid_at', 'shipped_at', 'completed_at'];
     const lines = list.map(o => [o.id, o.created_at, o.status, o.buyer_name, o.buyer_email,
       o.market_order_items.map(i => `${i.product_name} x${i.qty} @${i.unit_price}`).join('; '),
-      o.shipping_method, o.subtotal, o.shipping_fee, o.platform_fee, o.total, o.paid_at, o.shipped_at, o.completed_at].map(q).join(','));
+      o.shipping_method, o.ship_to, o.subtotal, o.shipping_fee, o.platform_fee, o.total, o.paid_at, o.shipped_at, o.completed_at].map(q).join(','));
     const blob = new Blob(['﻿' + [head.join(','), ...lines].join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `immba-market-sales-${sel || 'all'}.csv` });
     a.click(); URL.revokeObjectURL(a.href);
@@ -718,9 +735,14 @@
   async function checkout() {
     if (placing) return;
     placing = true;
+    if (state.shipping !== 'pickup') {
+      state.shipTo = ($('ship-to') ? $('ship-to').value : state.shipTo).trim();
+      if (state.shipTo.length < 5) { placing = false; return flash(t('Enter the delivery details (name, phone, address or store).', '請填寫收件資料（姓名、電話、地址或超商門市）。'), true); }
+    }
     const btn = $('btn-checkout'); btn.disabled = true; btn.textContent = t('Placing order…', '訂單送出中…');
-    const { data, error } = await sb.rpc('market_place_order', { p_shipping: state.shipping });
+    const { data, error } = await sb.rpc('market_place_order', { p_shipping: state.shipping, p_ship_to: state.shipping === 'pickup' ? '' : state.shipTo });
     placing = false;
+    if (!error) state.shipTo = '';
     if (error) { btn.disabled = false; btn.textContent = t('Place order', '送出訂單'); return flash(friendly(error), true); }
     const n = Array.isArray(data) ? data.length : 1;
     flash(t('Order placed ({n} order{s}). The seller has been notified: follow the status under “My orders”.', '訂單已送出（共 {n} 筆）。已通知賣家，請在「我的訂單」查看狀態。', { n, s: n > 1 ? 's' : '' }));
@@ -780,7 +802,9 @@
       try { localStorage.setItem('market_mode', state.mode); } catch { /* per-browser convenience only */ }
       render(); return;
     }
-    if (e.target.name === 'ship') { state.shipping = e.target.value; renderCart(); return; }
+    if (e.target.name === 'ship') { state.shipping = e.target.value === 'pickup' ? 'pickup' : state.shipKind; renderCart(); return; }
+    if (e.target.id === 'ship-to') { state.shipTo = e.target.value; return; }
+    if (e.target.id === 'ship-kind') { state.shipKind = e.target.value; state.shipping = e.target.value; renderCart(); return; }
     if (e.target.id === 'fin-month') renderFinance();
     if (e.target.closest('#filters')) renderProducts();
   });

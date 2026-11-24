@@ -17,6 +17,7 @@
     cancelled:       ['Cancelled', 'bg-slate-200 text-slate-600']
   };
   const STUCK_DAYS = 7;
+  const SHIP = { pickup: 'Receive in person', cvs: 'Shipment: convenience store', delivery: 'Shipment: home, main island', island: 'Shipment: offshore islands' };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => 'NT$' + Number(n || 0).toLocaleString('en-US');
   const when = d => d ? new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
@@ -43,7 +44,7 @@
     if (m.error) throw m.error;
     if (l.error) throw l.error;
     members = m.data || []; listings = l.data || [];
-    if (settings) { $('fee').value = settings.platform_fee; $('delivery').value = settings.delivery_fee; }
+    if (settings) { $('fee').value = settings.platform_fee; $('cvs').value = settings.cvs_fee; $('delivery').value = settings.delivery_fee; $('island').value = settings.island_fee; }
   }
 
   function filtered() {
@@ -55,12 +56,12 @@
   }
 
   function render() {
-    const live = orders.filter(o => o.status !== 'cancelled');
+    const live = orders.filter(o => o.status !== 'cancelled'), done = orders.filter(o => o.status === 'completed');
     const tile = (l, v, sub) => `<div class="bg-white border border-slate-200 p-4"><p class="text-[11px] uppercase tracking-wider font-bold text-slate-500">${l}</p><p class="font-serif text-2xl font-bold mt-1">${v}</p><p class="text-[11px] text-slate-500">${sub}</p></div>`;
     $('totals').innerHTML =
       tile('Number of transactions', orders.length, `${live.length} not cancelled`) +
       tile('Total transaction amount', money(live.reduce((n, o) => n + o.total, 0)), 'excluding cancelled orders') +
-      tile('Total platform fees', money(live.reduce((n, o) => n + o.platform_fee, 0)), `currently ${money(settings ? settings.platform_fee : 0)} per transaction`) +
+      tile('Your commission (completed)', money(done.reduce((n, o) => n + o.platform_fee, 0)), `${done.length} completed × ${money(settings ? settings.platform_fee : 0)} · ${money(live.filter(o => o.status !== 'completed').reduce((n, o) => n + o.platform_fee, 0))} still pending`) +
       tile('Needs attention', orders.filter(stuck).length, `open, no change for ${STUCK_DAYS}+ days`);
 
     const list = filtered();
@@ -74,7 +75,7 @@
         <td class="px-4 py-3 text-xs"><p class="font-bold">${esc(o.buyer_name)}</p><p class="text-slate-500">${esc(o.buyer_email)}</p></td>
         <td class="px-4 py-3 text-xs"><p class="font-bold">${esc(o.seller_name)}</p><p class="text-slate-500">${esc(o.seller_email)}</p></td>
         <td class="px-4 py-3 text-xs">${o.market_order_items.map(i => `${esc(i.product_name)} ×${i.qty}`).join('<br>')}
-          <p class="text-slate-400 mt-1">${o.shipping_method === 'delivery' ? 'Home delivery' : 'Pickup'}</p></td>
+          <p class="text-slate-400 mt-1">${SHIP[o.shipping_method] || o.shipping_method}</p>${o.ship_to ? `<p class="text-slate-400 whitespace-pre-line">${esc(o.ship_to)}</p>` : ''}</td>
         <td class="px-4 py-3"><span class="inline-block px-2 py-0.5 text-[11px] font-bold ${STATUS[o.status][1]}">${STATUS[o.status][0]}</span>
           ${stuck(o) ? '<p class="text-[11px] font-bold text-amber-800 mt-1">Needs attention</p>' : ''}</td>
         <td class="px-4 py-3 text-right text-xs"><p class="font-bold text-sm">${money(o.total)}</p><p class="text-slate-500">Subtotal ${money(o.subtotal)}</p><p class="text-slate-500">Shipping ${money(o.shipping_fee)}</p></td>
@@ -137,6 +138,45 @@
     a.click(); URL.revokeObjectURL(a.href);
   }
 
+  // Financial report for the platform owner: commission per month + every completed transaction (Excel-friendly UTF-8 CSV).
+  // Uses the date filters (by completion date). Commission is only counted once an order is completed.
+  function exportReport() {
+    const from = $('f-from').value, to = $('f-to').value;
+    const when_ = o => o.completed_at || o.updated_at;
+    const done = orders.filter(o => o.status === 'completed' && when_(o) &&
+      (!from || when_(o).slice(0, 10) >= from) && (!to || when_(o).slice(0, 10) <= to));
+    if (!done.length) return flash('There are no completed transactions in this period, so there is nothing to report.', true);
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const row = a => a.map(q).join(',');
+    const months = {};
+    done.forEach(o => {
+      const m = when_(o).slice(0, 7);
+      const r = months[m] || (months[m] = { n: 0, sales: 0, ship: 0, fee: 0 });
+      r.n++; r.sales += o.subtotal; r.ship += o.shipping_fee; r.fee += o.platform_fee;
+    });
+    const keys = Object.keys(months).sort();
+    const tot = keys.reduce((t, k) => ({ n: t.n + months[k].n, sales: t.sales + months[k].sales, ship: t.ship + months[k].ship, fee: t.fee + months[k].fee }), { n: 0, sales: 0, ship: 0, fee: 0 });
+    const lines = [
+      row(['imMBA Market: financial report']), row(['Created', new Date().toISOString().slice(0, 16).replace('T', ' ')]),
+      row(['Period (completion date)', (from || 'start') + ' to ' + (to || 'today')]), row(['Currency', 'NT$ (TWD)']),
+      row(['Commission rule', 'NT$' + (settings ? settings.platform_fee : 4) + ' per completed transaction, charged to the seller']), '',
+      row(['MONTHLY SUMMARY']),
+      row(['Month', 'Completed transactions', 'Gross sales (items)', 'Shipping collected', 'Platform commission (your income)', 'Paid out to sellers (sales - commission)']),
+      ...keys.map(k => row([k, months[k].n, months[k].sales, months[k].ship, months[k].fee, months[k].sales - months[k].fee])),
+      row(['TOTAL', tot.n, tot.sales, tot.ship, tot.fee, tot.sales - tot.fee]), '',
+      row(['TRANSACTIONS']),
+      row(['Order ID', 'Completed at', 'Month', 'Seller', 'Seller email', 'Buyer', 'Delivery', 'Items', 'Items total', 'Shipping fee', 'Platform commission', 'Seller receives', 'Buyer paid']),
+      ...done.slice().sort((a, b) => when_(a).localeCompare(when_(b))).map(o => row([
+        o.id, when_(o), when_(o).slice(0, 7), o.seller_name, o.seller_email, o.buyer_name,
+        SHIP[o.shipping_method] || o.shipping_method, o.market_order_items.map(i => `${i.product_name} x${i.qty} @${i.unit_price}`).join('; '),
+        o.subtotal, o.shipping_fee, o.platform_fee, o.subtotal - o.platform_fee, o.total]))
+    ];
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `immba-market-financial-report-${new Date().toISOString().slice(0, 10)}.csv` });
+    a.click(); URL.revokeObjectURL(a.href);
+    flash(`Financial report downloaded: ${tot.n} transaction(s), your commission NT$${tot.fee.toLocaleString('en-US')}.`);
+  }
+
   async function enterApp(session) {
     meId = session.user.id;
     $('auth').classList.add('hidden');
@@ -160,6 +200,7 @@
     $('filters').addEventListener('input', render);
     $('filters').addEventListener('change', render);
     $('btn-csv').addEventListener('click', exportCsv);
+    $('btn-report').addEventListener('click', exportReport);
     $('views').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) showView(b.dataset.view); });
     $('m-q').addEventListener('input', renderMembers);
     $('l-q').addEventListener('input', renderListings);
@@ -177,9 +218,9 @@
     });
     $('fee-form').addEventListener('submit', async e => {
       e.preventDefault();
-      const fee = Math.round(+$('fee').value), delivery = Math.round(+$('delivery').value);
-      if (!(fee >= 0) || !(delivery >= 0)) return flash('Fees must be 0 or more.', true);
-      const { data, error } = await sb.from('market_settings').update({ platform_fee: fee, delivery_fee: delivery }).eq('id', 1).select('*');
+      const fee = Math.round(+$('fee').value), delivery = Math.round(+$('delivery').value), cvs = Math.round(+$('cvs').value), island = Math.round(+$('island').value);
+      if (![fee, delivery, cvs, island].every(v => v >= 0 && v <= 100000)) return flash('Fees must be whole numbers from 0 to 100,000.', true);
+      const { data, error } = await sb.from('market_settings').update({ platform_fee: fee, delivery_fee: delivery, cvs_fee: cvs, island_fee: island }).eq('id', 1).select('*');
       if (error || !data.length) return flash(error ? errText(error) : 'Only the super admin can change the fees.', true);
       settings = data[0]; flash('Fees saved. New orders use them.'); render();
     });

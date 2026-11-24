@@ -30,10 +30,14 @@ function fakeDb() {
     cart: [], orders: [], rpcCalls: 0, notes: [{ id: 1, user_id: SELLER, message: 'New order #abcd1234 from Test Buyer (NT$900). Confirm the payment when you receive it.', created_at: '2026-11-23T10:00:00Z', read_at: null }]
   };
 }
+
+const ord = (id, status, completed, sub, ship, method, extra = {}) => ({ id, status, buyer_id: 'b', buyer_name: 'Buyer ' + id, buyer_email: 'b@x.com', seller_id: 's', seller_name: 'Seller One', seller_email: 's@x.com',
+  shipping_method: method, ship_to: method === 'pickup' ? '' : 'Ann Lee 0912, Taipei', subtotal: sub, shipping_fee: ship, platform_fee: 4, total: sub + ship, created_at: '2026-10-05T08:00:00Z', updated_at: completed || '2026-11-10T08:00:00Z',
+  completed_at: completed || null, market_order_items: [{ product_name: 'Item ' + id, qty: 1, unit_price: sub }], ...extra });
 const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
 const session = (uid, email) => ({ access_token: `${b64({ alg: 'HS256' })}.${b64({ sub: uid, exp: 4102444800, role: 'authenticated' })}.sig`, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: 4102444800, user: { id: uid, email, aud: 'authenticated', role: 'authenticated', email_confirmed_at: '2026-11-01T00:00:00Z' } });
 
-async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, page = 'market.html', db = fakeDb(), hash = '', lang = 'en' } = {}) {
+async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, page = 'market.html', db = fakeDb(), hash = '', lang = 'en', role = 'member' } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 900 } });
   // the site is Chinese by default; the original tests check the English texts, so they ask for English
   await ctx.addInitScript(l => { try { localStorage.setItem('immba_lang', l); } catch (e) { /* storage blocked */ } }, lang);
@@ -64,12 +68,12 @@ async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, pag
     const t = u.pathname.split('/').pop(), q = decodeURIComponent(u.search);
     if (u.pathname.includes('/rpc/')) {
       if (t === 'market_place_order') {
-        db.rpcCalls++;
+        db.rpcCalls++; db.lastRpc = body;
         await new Promise(res => setTimeout(res, 400));   // a slow network makes double clicks likely
         if (!db.cart.length) return json({ code: 'P0001', message: 'Your cart is empty.' }, 400);
         db.cart = []; db.orders.push({ id: 'o' + db.rpcCalls }); return json(['ord-' + db.rpcCalls]);
       }
-      if (t === 'market_admin_members') return json({ code: '42501', message: 'Platform admins only.' }, 400);
+      if (t === 'market_admin_members') return role === 'member' ? json({ code: '42501', message: 'Platform admins only.' }, 400) : json([]);
       return json(null);
     }
     if (t === 'market_products') {
@@ -86,10 +90,10 @@ async function openPage(browser, { uid = null, mode = 'buyer', width = 1440, pag
       if (method === 'DELETE') { db.cart = []; return json(null, 204); }
       return json(db.cart.map(c => ({ ...c, market_products: db.products.find(p => p.id === c.product_id) })));
     }
-    if (t === 'market_settings') return json([{ platform_fee: 4, delivery_fee: 80 }]);
-    if (t === 'market_orders') return json([]);
+    if (t === 'market_settings') return json([{ platform_fee: 4, delivery_fee: 110, cvs_fee: 65, island_fee: 200 }]);
+    if (t === 'market_orders') return json(db.adminOrders || []);
     if (t === 'market_notifications') return method === 'PATCH' ? json(null, 204) : json(db.notes.filter(n => n.user_id === uid));
-    if (t === 'profiles') return json([{ user_id: uid, full_name: uid === SELLER ? 'Test Seller' : 'Test Buyer', email: 'x@example.com', role: 'member', market_status: 'active' }]);
+    if (t === 'profiles') return json([{ user_id: uid, full_name: uid === SELLER ? 'Test Seller' : 'Test Buyer', email: 'x@example.com', role, market_status: 'active' }]);
     return json([]);
   });
   if (uid) await p.addInitScript(([s, m]) => { localStorage.setItem('sb-htgopftaykbwpgahkyfl-auth-token', JSON.stringify(s)); localStorage.setItem('market_mode', m); }, [session(uid, uid === SELLER ? 'seller@example.com' : 'buyer@example.com'), mode]);
@@ -293,6 +297,66 @@ const visible = (p, sel) => p.locator(sel).first().isVisible().catch(() => false
     await p.screenshot({ path: path.join(SHOTS, 'zh-seller-form.png') });
     await p.click('[data-close]');
     await p.screenshot({ path: path.join(SHOTS, 'zh-seller.png'), fullPage: true });
+    allErrors.push(...errors);
+  }
+
+  // ── 13 Delivery: receive in person / shipment within Taiwan ──
+  {
+    const { p, errors, db } = await openPage(browser, { uid: BUYER });
+    await p.click('[data-add="p2"]'); await p.waitForTimeout(400);
+    const total = async () => (await text(p, '#cart dl div:last-child dd'));
+    record('13 Delivery', 'Default: receive in person is free', 'two choices; total NT$900', `${(await text(p, '#cart fieldset')).replace(/\s+/g, ' ')} | ${await total()}`, /Receive in person \(free\)/.test(await text(p, '#cart fieldset')) && /Shipment \(within Taiwan\)/.test(await text(p, '#cart fieldset')) && (await total()) === 'NT$900');
+    await p.check('input[name="ship"][value="ship"]'); await p.waitForTimeout(150);
+    const opts = (await p.locator('#ship-kind option').allTextContents()).join(' | ');
+    record('13 Delivery', 'Shipment shows 3 services with Taiwan prices', 'store 65, home 110, islands 200', opts, /65/.test(opts) && /110/.test(opts) && /200/.test(opts));
+    record('13 Delivery', 'Shipment (home, main island): total = 900 + 110', 'NT$1,010', await total(), (await total()) === 'NT$1,010');
+    await p.selectOption('#ship-kind', 'island'); await p.waitForTimeout(150);
+    record('13 Delivery', 'Shipment (offshore islands): total = 900 + 200', 'NT$1,100', await total(), (await total()) === 'NT$1,100');
+    await p.selectOption('#ship-kind', 'cvs'); await p.waitForTimeout(150);
+    record('13 Delivery', 'Shipment (convenience store): total = 900 + 65', 'NT$965', await total(), (await total()) === 'NT$965');
+    await p.locator('#cart').scrollIntoViewIfNeeded(); await p.locator('#cart').screenshot({ path: path.join(SHOTS, 'shipment-cart.png') });
+    await p.click('#btn-checkout'); await p.waitForTimeout(300);
+    record('13 Delivery', 'Shipment without delivery details', 'blocked with a clear message, no order sent', `${await text(p, '#flash')} (orders sent: ${db.rpcCalls})`, /delivery details/.test(await text(p, '#flash')) && db.rpcCalls === 0);
+    await p.fill('#ship-to', 'Ann Lee 0912-345-678, 7-ELEVEN Taipei store 123456'); await p.click('#btn-checkout'); await p.waitForTimeout(700);
+    record('13 Delivery', 'Place a shipment order with details', 'order sent with method + details', JSON.stringify(db.lastRpc), db.lastRpc && db.lastRpc.p_shipping === 'cvs' && /7-ELEVEN/.test(db.lastRpc.p_ship_to));
+    allErrors.push(...errors);
+  }
+  {
+    const { p, errors, db } = await openPage(browser, { uid: BUYER, lang: 'zh' });
+    await p.click('[data-add="p2"]'); await p.waitForTimeout(400);
+    await p.check('input[name="ship"][value="ship"]'); await p.waitForTimeout(150);
+    const f = (await text(p, '#cart fieldset')).replace(/\s+/g, ' ');
+    record('13 Delivery', 'Chinese: delivery choices and prices', '面交（當面取貨，免運費） / 寄送（台灣境內） / NT$65 · 超商取貨', f.slice(0, 160), /面交（當面取貨，免運費）/.test(f) && /寄送（台灣境內）/.test(f) && /NT\$65 · 超商取貨/.test(await p.locator('#ship-kind').evaluate(e => e.options[0].text)) && /NT\$110 · 宅配到府，台灣本島/.test(await p.locator('#ship-kind').evaluate(e => e.options[1].text)));
+    await p.click('#btn-checkout');
+    record('13 Delivery', 'Chinese: missing delivery details', '請填寫收件資料…', await text(p, '#flash'), /^請填寫收件資料/.test(await text(p, '#flash')));
+    allErrors.push(...errors);
+  }
+
+  // ── 14 Back office: owner's financial report (CSV) + commission ──
+  {
+    const db = fakeDb();
+    db.adminOrders = [ord('A1', 'completed', '2026-10-20T10:00:00Z', 1000, 110, 'delivery'), ord('A2', 'completed', '2026-11-12T10:00:00Z', 500, 0, 'pickup'),
+      ord('A3', 'completed', '2026-11-15T10:00:00Z', 3000, 200, 'island'), ord('A4', 'pending_payment', null, 800, 65, 'cvs'), ord('A5', 'cancelled', null, 200, 0, 'pickup', { cancelled_at: '2026-11-11T00:00:00Z' })];
+    const { p, errors } = await openPage(browser, { uid: SELLER, page: 'admin-transactions.html', db, role: 'super_admin' });
+    await p.waitForTimeout(700);
+    const tiles = (await text(p, '#totals')).replace(/\s+/g, ' ');
+    record('14 Back office', 'Owner sees commission of completed orders only', '3 completed × NT$4 = NT$12', tiles, /Your commission \(completed\).*NT\$12/.test(tiles));
+    const prices = await p.evaluate(() => ['fee', 'cvs', 'delivery', 'island'].map(i => document.getElementById(i).value).join('/'));
+    record('14 Back office', 'Owner can see commission and shipping prices', '4/65/110/200', prices, prices === '4/65/110/200');
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#btn-report')]);
+    const file = await dl.path(), csv = fs.readFileSync(file, 'utf8');
+    fs.copyFileSync(file, path.join(SHOTS, 'financial-report.csv'));
+    record('14 Back office', 'Financial report downloads as CSV', 'file name immba-market-financial-report-….csv', dl.suggestedFilename(), /^immba-market-financial-report-\d{4}-\d{2}-\d{2}\.csv$/.test(dl.suggestedFilename()));
+    record('14 Back office', 'Report: monthly commission', '2026-10: 1 × 4, 2026-11: 2 × 8, total 12', csv.split(/\r?\n/).filter(l => /^"(2026-1[01]|TOTAL)"/.test(l)).join(' ; '),
+      /"2026-10","1","1000","110","4","996"/.test(csv) && /"2026-11","2","3500","200","8","3492"/.test(csv) && /"TOTAL","3","4500","310","12","4488"/.test(csv));
+    record('14 Back office', 'Report lists every completed transaction (not pending/cancelled)', 'A1, A2, A3 only', (csv.match(/"A[1-5]"/g) || []).join(' '), (csv.match(/"A[1-5]"/g) || []).join(' ') === '"A1" "A2" "A3"' && csv.charCodeAt(0) === 0xFEFF);
+    await p.fill('#f-from', '2026-11-01'); await p.waitForTimeout(100);
+    const [dl2] = await Promise.all([p.waitForEvent('download'), p.click('#btn-report')]);
+    const csv2 = fs.readFileSync(await dl2.path(), 'utf8');
+    record('14 Back office', 'Report respects the date filter (from 2026-11-01)', 'only November: total commission 8', csv2.split(/\r?\n/).filter(l => /^"TOTAL"/.test(l)).join(''), /"TOTAL","2","3500","200","8","3492"/.test(csv2) && !/"2026-10"/.test(csv2));
+    await p.fill('#f-from', '2030-01-01'); await p.click('#btn-report'); await p.waitForTimeout(200);
+    record('14 Back office', 'Report with no completed transactions', 'clear message, no file', await text(p, '#status-msg'), /nothing to report/.test(await text(p, '#status-msg')));
+    await p.screenshot({ path: path.join(SHOTS, 'admin-report.png') });
     allErrors.push(...errors);
   }
 

@@ -98,16 +98,19 @@ select pg_temp.chk('5 Negative', 'Unknown shipping method', 'rejected', pg_temp.
 
 -- quantity = maximum stock (5) is allowed
 update public.market_cart set qty = 5 where product_id = current_setting('t.p')::uuid;
-select pg_temp.run($$select public.market_place_order('delivery')$$);
+select pg_temp.chk('5 Negative', 'Shipment without delivery details', 'rejected: delivery details required',
+  pg_temp.err($$select public.market_place_order('delivery', '')$$),
+  pg_temp.err($$select public.market_place_order('delivery', '  ')$$) like '%delivery details%');
+select pg_temp.run($$select public.market_place_order('delivery', 'Ann Lee 0912-345-678, 100 Zhongzheng Rd, Taipei')$$);
 select pg_temp.chk('6 Boundary', 'Order quantity = maximum stock (5 of 5)', 'order placed, stock becomes 0',
   pg_temp.e('placed; stock now ' || (select quantity from public.market_products where id = current_setting('t.p')::uuid)),
   (select quantity from public.market_products where id = current_setting('t.p')::uuid) = 0);
 select set_config('t.o', (select id::text from public.market_orders where buyer_id = current_setting('t.b')::uuid order by created_at desc limit 1), true);
 
 -- ───────────── 2. INTEGRATION ─────────────
-select pg_temp.chk('2 Integration', 'Buyer places order → database creates order', '1 order, subtotal 125,000 + delivery 80',
+select pg_temp.chk('2 Integration', 'Buyer places order → database creates order', '1 order, subtotal 125,000 + home shipment 110, address saved',
   (select count(*) || ' order, subtotal ' || max(subtotal) || ', shipping ' || max(shipping_fee) || ', total ' || max(total) from public.market_orders where buyer_id = current_setting('t.b')::uuid),
-  (select count(*) = 1 and max(subtotal) = 125000 and max(total) = 125000 + max(shipping_fee) from public.market_orders where buyer_id = current_setting('t.b')::uuid));
+  (select count(*) = 1 and max(subtotal) = 125000 and max(shipping_fee) = 110 and max(total) = 125110 and max(ship_to) like 'Ann Lee%' from public.market_orders where buyer_id = current_setting('t.b')::uuid));
 select pg_temp.chk('2 Integration', 'Cart is emptied after the order', '0 items in cart',
   (select count(*)::text from public.market_cart), (select count(*) from public.market_cart) = 0);
 select pg_temp.chk('5 Negative', 'Click "Place order" twice', 'second click refused, still only 1 order',

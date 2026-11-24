@@ -10,8 +10,9 @@ System under test: imMBA Market (`market.html`, `admin-transactions.html`, datab
 | | Test cases | Passed |
 |---|---|---|
 | Database tests (`tests/db-tests.sql`, run on the live Supabase database inside a transaction that is rolled back) | 53 | 53 |
-| Browser tests (`tests/ui-tests.js`, real Chromium with a fake backend): 39 in English + 17 in Chinese | 56 | 56 |
-| **Total (after fixes)** | **109** | **109** |
+| Shipping, commission and self-registration database tests (`tests/shipping-db-tests.sql`, rolled back) | 13 | 13 |
+| Browser tests (`tests/ui-tests.js`, real Chromium with a fake backend): 39 English + 17 Chinese + 8 delivery/shipment + 8 owner report | 72 | 72 |
+| **Total (after fixes)** | **138** | **138** |
 
 ## Break it → Fix it: problems found and fixed
 
@@ -56,6 +57,13 @@ System under test: imMBA Market (`market.html`, `admin-transactions.html`, datab
 ## Test cases by type
 
 Format from the lecture: **Action → Expected → Actual → Result.** “Actual” is the real output of the test run.
+
+### Delivery, commission and owner report (added 24 Nov)
+
+- **Delivery:** “Receive in person” (free) or “Shipment” within Taiwan, with a required delivery-details box: convenience-store pickup NT$65, home delivery main island NT$110, offshore islands NT$200 (realistic 2026 courier prices; the owner can change them in the back office). Order keeps the price it was placed with (`supabase/marketplace_v3.sql`).
+- **Owner commission:** NT$4 per transaction (charged to the seller), counted when the order is completed.
+- **Financial report (CSV):** back office → Transactions → “Download financial report”: monthly summary (sales, shipping, commission, paid out to sellers) + every completed transaction, filtered by the date fields.
+- **Self-registration:** anyone can register on the Market with an email; they become a plain `member` (never an admin request) and cannot buy or sell until the confirmation email link is clicked (Supabase: sign-ups on, “confirm email” on). Checked in `tests/shipping-db-tests.sql` #1–3.
 
 ### Chinese (中文) support
 
