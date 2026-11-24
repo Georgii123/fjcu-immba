@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect width="800" height="600" fill="#F1F5F9"/><circle cx="400" cy="320" r="230" fill="#E2E8F0"/>
+<rect x="240" y="95" width="340" height="440" rx="10" fill="#0F172A"/><rect x="228" y="85" width="340" height="440" rx="10" fill="#800020"/>
+<rect x="228" y="85" width="34" height="440" rx="6" fill="#5A0016"/><rect x="290" y="130" width="230" height="4" fill="#FFFFFF" opacity=".5"/>
+<text x="405" y="215" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="46" fill="#FFFFFF">Principles</text><text x="405" y="268" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="46" fill="#FFFFFF">of Marketing</text>
+<text x="405" y="318" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" letter-spacing="3" fill="#FECACA">17TH EDITION</text>
+<circle cx="405" cy="415" r="46" fill="none" stroke="#FFFFFF" stroke-width="4"/><path d="M405 370 v90 M360 415 h90 M373 383 l64 64 M437 383 l-64 64" stroke="#FFFFFF" stroke-width="3" opacity=".6"/>
+<text x="405" y="505" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#FECACA">KOTLER · ARMSTRONG</text></svg>

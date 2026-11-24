@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect width="800" height="600" fill="#F1F5F9"/><circle cx="400" cy="320" r="230" fill="#E2E8F0"/>
+<path d="M260 230 H540 V430 Q540 490 480 490 H320 Q260 490 260 430Z" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="5"/>
+<path d="M540 270 H585 Q640 270 640 330 Q640 390 585 390 H540" fill="none" stroke="#CBD5E1" stroke-width="26" stroke-linecap="round"/><path d="M540 270 H585 Q630 270 630 330 Q630 390 585 390 H540" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+<rect x="260" y="230" width="280" height="36" fill="#800020"/>
+<text x="400" y="380" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="68" fill="#0F172A">imMBA</text><text x="400" y="425" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" letter-spacing="4" fill="#800020">FU JEN</text>
+<path d="M340 190 q-22 -30 0 -55 q22 -25 0 -50 M400 190 q-22 -30 0 -55 q22 -25 0 -50 M460 190 q-22 -30 0 -55 q22 -25 0 -50" fill="none" stroke="#94A3B8" stroke-width="8" stroke-linecap="round" opacity=".7"/></svg>
