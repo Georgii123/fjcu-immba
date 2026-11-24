@@ -41,14 +41,52 @@
   const FIELD = 'w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-burgundy';
   const LABEL = 'block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1';
 
+  // Turn database / auth errors into messages a first-time user understands (never show raw SQL text).
   function friendly(ex) {
     const m = (ex && (ex.message || ex.error_description)) || String(ex);
-    if (/Invalid login credentials/i.test(m)) return 'Wrong email or password (or the email is not confirmed yet).';
-    if (/Failed to fetch|NetworkError/i.test(m)) return 'Cannot reach the server. Check your connection and try again.';
+    if (/Email not confirmed/i.test(m)) return 'Your email is not confirmed yet. Open the link in the confirmation email (check spam), or resend it below.';
+    if (/Invalid login credentials/i.test(m)) return 'Wrong email or password.';
+    if (/User already registered|already been registered/i.test(m)) return 'This email already has an account. Log in, or use “Forgot password”.';
+    if (/weak|Password should|pwned|leaked/i.test(m)) return 'This password is too weak or has appeared in a data leak. Choose a different one.';
+    if (/rate limit|too many|security purposes/i.test(m)) return 'Too many tries. Wait a minute and try again.';
+    if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Cannot reach the server. Check your connection and try again.';
+    if (/market_cart_qty_check/.test(m)) return 'Quantity must be between 1 and 1,000.';
+    if (/market_products_quantity_check/.test(m)) return 'Stock must be a whole number between 0 and 100,000.';
+    if (/market_products_price_check/.test(m)) return 'Price must be between NT$0 and NT$10,000,000.';
+    if (/market_products_name_check/.test(m)) return 'The product name must be 2 to 120 characters.';
+    if (/market_products_description_check/.test(m)) return 'The description is too long (2,000 characters at most).';
+    if (/check constraint|invalid input syntax/i.test(m)) return 'One of the values is not allowed. Check the form and try again.';
+    if (/permission denied for function/i.test(m)) return 'Please log in first.';
     if (state.profile && state.profile.market_status === 'suspended' && /row-level security|permission denied/i.test(m)) return 'Your market account is suspended by the platform admin.';
     if (/row-level security|permission denied/i.test(m)) return 'You are not allowed to do that.';
     return m;
   }
+  // Password policy (shown while typing): 8+ characters, letters AND numbers, not a common password.
+  const COMMON = ['password', 'password1', '12345678', '123456789', 'qwerty123', 'abc12345', 'iloveyou1', 'immba123', 'fujen123'];
+  function pwProblem(pw) {
+    if (pw.length < 8) return 'Use at least 8 characters.';
+    if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return 'Use both letters and numbers.';
+    if (COMMON.includes(pw.toLowerCase())) return 'This password is too common. Choose another one.';
+    return '';
+  }
+  function pwScore(pw) {
+    let s = 0;
+    if (pw.length >= 8) s++; if (pw.length >= 12) s++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++; if (/\d/.test(pw)) s++; if (/[^\w\s]/.test(pw)) s++;
+    return pwProblem(pw) ? Math.min(s, 1) : Math.min(s, 4);
+  }
+  const PW_LABEL = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong'];
+  const PW_COLOR = ['bg-red-500', 'bg-red-400', 'bg-amber-400', 'bg-emerald-500', 'bg-emerald-600'];
+  function bindMeter(input, meter) {
+    const draw = () => {
+      const pw = input.value, sc = pwScore(pw), prob = pwProblem(pw);
+      meter.innerHTML = pw ? `<div class="flex gap-1">${[0, 1, 2, 3].map(i => `<span class="h-1.5 flex-1 ${i < Math.max(sc, 1) ? PW_COLOR[sc] : 'bg-slate-200'}"></span>`).join('')}</div>
+        <p class="text-[11px] mt-1 ${prob ? 'text-red-700' : 'text-emerald-700'} font-semibold">${PW_LABEL[sc]}${prob ? ' — ' + prob : ''}</p>`
+        : '<p class="text-[11px] text-slate-500">At least 8 characters, with letters and numbers.</p>';
+    };
+    input.addEventListener('input', draw); draw();
+  }
+
   let flashTimer;
   function flash(msg, bad) {
     const el = $('flash');
@@ -135,6 +173,8 @@
             </label>`).join('')}
         </div>
       </fieldset>
+      ${state.mode === 'buyer' ? `<button id="btn-cart" class="mt-3 w-full flex items-center justify-between px-3 py-2 bg-white/10 hover:bg-white/20 text-xs font-bold">
+        <span>🛒 Shopping cart</span><span>${state.cart.reduce((n, c) => n + c.qty, 0)} item(s) →</span></button>` : ''}
       ${isAdmin ? '<a href="admin-transactions.html" class="block mt-3 text-[11px] font-bold text-amber-400 hover:text-amber-300">Platform admin: all transactions →</a>' : ''}`;
   }
 
@@ -310,7 +350,7 @@
           <p class="text-xs text-slate-500">${esc(p.category)} · ${money(p.price)} · Status: <b class="${p.status === 'listed' ? 'text-emerald-700' : 'text-slate-500'}">${p.status === 'listed' ? 'Listed' : 'Hidden'}</b></p>
           ${p.quantity <= 0 ? '<p class="text-xs font-bold text-red-700">Sold out</p>' : p.quantity <= LOW_STOCK ? `<p class="text-xs font-bold text-amber-700">Low stock alert: only ${p.quantity} left</p>` : ''}
         </div>
-        <form data-stock="${p.id}" class="flex items-center gap-2">
+        <form data-stock="${p.id}" class="flex items-center gap-2" novalidate>
           <label class="sr-only" for="q-${p.id}">Stock for ${esc(p.name)}</label>
           <input id="q-${p.id}" type="number" min="0" value="${p.quantity}" class="w-20 border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:border-burgundy">
           <button class="${BTN_LINE}">Update stock</button>
@@ -400,8 +440,17 @@
   }
 
   // ───────── render all ─────────
+  function renderCartBar() {
+    const bar = $('cart-bar'); if (!bar) return;
+    const n = state.cart.reduce((m, c) => m + c.qty, 0);
+    const show = me() && state.mode === 'buyer' && n > 0;
+    bar.classList.toggle('hidden', !show);
+    if (show) bar.innerHTML = `<div class="flex items-center justify-between gap-3 px-4 py-3">
+      <p class="text-sm"><b>${n} item(s)</b> in cart · ${money(state.cart.reduce((m, c) => m + c.qty * c.market_products.price, 0))}</p>
+      <button id="btn-cart-bar" class="${BTN} bg-amber-400 text-slate-900">View cart</button></div>`;
+  }
   function render() {
-    renderAccount(); renderSummary();
+    renderAccount(); renderSummary(); renderCartBar();
     const seller = state.mode === 'seller' && me();
     $('buyer-view').classList.toggle('hidden', !!seller);
     $('seller-view').classList.toggle('hidden', !seller);
@@ -428,15 +477,25 @@
           <p class="text-sm text-slate-700 mt-4 whitespace-pre-line">${esc(p.description) || '<span class="text-slate-400">No description provided.</span>'}</p>
           <p class="text-xs text-slate-500 mt-4">Seller: ${esc(p.seller_name)} · listed ${when(p.created_at)}</p>
           ${own || p.quantity <= 0 ? '' : `
-          <form id="detail-add" class="mt-auto pt-6 flex items-end gap-2">
+          <form id="detail-add" class="mt-auto pt-6 flex items-end gap-2" novalidate>
             <label class="flex-none"><span class="${LABEL}">Quantity</span>
-              <input name="qty" type="number" min="1" max="${p.quantity}" value="1" class="w-20 ${FIELD}"></label>
+              <input name="qty" type="number" min="1" max="${p.quantity}" step="1" value="1" class="w-20 ${FIELD}"></label>
             <button class="${BTN_DARK} flex-1 !py-2.5">Add to cart</button>
-          </form>`}
+          </form>
+          <p id="detail-err" class="hidden text-sm text-red-700 mt-2" role="alert"></p>`}
         </div>
       </div>`);
     const f = $('detail-add');
-    if (f) f.addEventListener('submit', async e => { e.preventDefault(); await addToCart(p.id, Math.max(1, +f.qty.value || 1)); dlg.close(); });
+    if (f) f.addEventListener('submit', async e => {
+      e.preventDefault();
+      const raw = f.qty.value.trim(), q = Number(raw);
+      const bad = m => { $('detail-err').textContent = m; $('detail-err').classList.remove('hidden'); };
+      if (raw === '' || !Number.isInteger(q)) return bad('Enter a whole number.');
+      if (q < 1) return bad('Choose at least 1.');
+      const inCart = (state.cart.find(c => c.product_id === p.id) || { qty: 0 }).qty;
+      if (q + inCart > p.quantity) return bad(inCart ? `Only ${p.quantity} available and ${inCart} already in your cart.` : `Only ${p.quantity} available.`);
+      if (await addToCart(p.id, q)) dlg.close();
+    });
   }
 
   async function openNotes() {
@@ -456,42 +515,89 @@
     }
   }
 
+  // Log in / register / forgot password / choose a new password (after the reset email link).
   function openAuth(mode) {
-    const reg = mode === 'register';
-    openDialog(`${dlgHead(reg ? 'Create a market account' : 'Log in')}
+    const T = {
+      login:    ['Log in', 'Log in'],
+      register: ['Create a market account', 'Create account'],
+      forgot:   ['Forgot password', 'Send reset link'],
+      reset:    ['Choose a new password', 'Save new password']
+    }[mode];
+    const needEmail = mode !== 'reset', needPw = mode !== 'forgot', newPw = mode === 'register' || mode === 'reset';
+    openDialog(`${dlgHead(T[0])}
       <form id="auth-form" class="p-6 space-y-4" novalidate>
-        ${reg ? `<div><label class="${LABEL}" for="a-name">Full name</label><input id="a-name" class="${FIELD}" autocomplete="name" maxlength="80"></div>` : ''}
-        <div><label class="${LABEL}" for="a-email">Email</label><input id="a-email" type="email" class="${FIELD}" autocomplete="username"></div>
-        <div><label class="${LABEL}" for="a-pw">Password</label><input id="a-pw" type="password" class="${FIELD}" autocomplete="${reg ? 'new-password' : 'current-password'}"></div>
+        ${mode === 'forgot' ? '<p class="text-sm text-slate-600">Enter your email. We will send you a link to choose a new password.</p>' : ''}
+        ${mode === 'reset' ? '<p class="text-sm text-slate-600">Type your new password twice, then save it.</p>' : ''}
+        ${mode === 'register' ? `<div><label class="${LABEL}" for="a-name">Full name</label><input id="a-name" class="${FIELD}" autocomplete="name" maxlength="80"></div>` : ''}
+        ${needEmail ? `<div><label class="${LABEL}" for="a-email">Email</label><input id="a-email" type="email" class="${FIELD}" autocomplete="username"></div>` : ''}
+        ${needPw ? `<div><label class="${LABEL}" for="a-pw">${mode === 'reset' ? 'New password' : 'Password'}</label>
+          <input id="a-pw" type="password" class="${FIELD}" autocomplete="${newPw ? 'new-password' : 'current-password'}">
+          ${newPw ? '<div id="a-meter" class="mt-1.5" aria-live="polite"></div>' : ''}</div>` : ''}
+        ${newPw ? `<div><label class="${LABEL}" for="a-pw2">Confirm password</label><input id="a-pw2" type="password" class="${FIELD}" autocomplete="new-password"></div>` : ''}
         <p id="a-err" class="hidden text-sm text-red-700" role="alert"></p>
         <p id="a-info" class="hidden text-sm text-emerald-800" role="status"></p>
-        <button class="${BTN_DARK} w-full !py-3">${reg ? 'Create account' : 'Log in'}</button>
-        <p class="text-sm text-center text-slate-600">${reg ? 'Already have an account?' : 'New here?'}
-          <button type="button" data-auth="${reg ? 'login' : 'register'}" class="font-bold text-burgundy hover:underline">${reg ? 'Log in' : 'Create an account'}</button></p>
-        ${reg ? '<p class="text-[11px] text-slate-500">After registering, confirm your email from the link we send you. Then you can buy and sell.</p>' : ''}
+        <button type="button" id="a-resend" class="hidden text-sm font-bold text-burgundy hover:underline">Resend confirmation email</button>
+        <button id="a-submit" class="${BTN_DARK} w-full !py-3">${T[1]}</button>
+        <div class="text-sm text-center text-slate-600 space-y-1">
+          ${mode === 'login' ? `<p><button type="button" data-auth="forgot" class="font-bold text-burgundy hover:underline">Forgot password?</button></p>
+            <p>New here? <button type="button" data-auth="register" class="font-bold text-burgundy hover:underline">Create an account</button></p>` : ''}
+          ${mode === 'register' || mode === 'forgot' ? `<p><button type="button" data-auth="login" class="font-bold text-burgundy hover:underline">Back to log in</button></p>` : ''}
+        </div>
+        ${mode === 'register' ? '<p class="text-[11px] text-slate-500">After registering, we email you a confirmation link. You can buy and sell once your email is confirmed.</p>' : ''}
       </form>`);
+    if (newPw) bindMeter($('a-pw'), $('a-meter'));
+    const err = m => { $('a-err').textContent = m; $('a-err').classList.remove('hidden'); $('a-info').classList.add('hidden'); };
+    const info = m => { $('a-info').textContent = m; $('a-info').classList.remove('hidden'); $('a-err').classList.add('hidden'); };
+    const back = location.origin + location.pathname;
+    $('a-resend').addEventListener('click', async () => {
+      const email = $('a-email').value.trim();
+      const { error } = await sb.auth.resend({ type: 'signup', email, options: { emailRedirectTo: back } });
+      if (error) return err(friendly(error));
+      info(`A new confirmation email was sent to ${email}. Click the link inside, then log in.`);
+      $('a-resend').classList.add('hidden');
+    });
     $('auth-form').addEventListener('submit', async e => {
       e.preventDefault();
-      const err = m => { $('a-err').textContent = m; $('a-err').classList.remove('hidden'); };
-      const email = $('a-email').value.trim(), pw = $('a-pw').value;
-      if (!/^\S+@\S+\.\S+$/.test(email)) return err('Enter a valid email address.');
-      if (pw.length < 6) return err('The password needs at least 6 characters.');
+      const email = needEmail ? $('a-email').value.trim() : '';
+      const pw = needPw ? $('a-pw').value : '';
+      if (needEmail && !email) return err('Enter your email address.');
+      if (needEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err('That email address does not look right (example: name@gmail.com).');
+      if (needPw && !pw) return err(mode === 'login' ? 'Enter your password.' : 'Choose a password.');
+      if (newPw) {
+        const prob = pwProblem(pw); if (prob) return err(prob);
+        if (pw !== $('a-pw2').value) return err('The two passwords do not match.');
+      }
+      const btn = $('a-submit'); btn.disabled = true;
       try {
-        if (reg) {
-          const name = $('a-name').value.trim();
-          if (name.length < 2) return err('Enter your full name (buyers and sellers see it).');
+        if (mode === 'register') {
+          const name = $('a-name').value.trim().replace(/\s+/g, ' ');
+          if (name.length < 2) { btn.disabled = false; return err('Enter your full name (buyers and sellers see it).'); }
           const { data, error } = await sb.auth.signUp({ email, password: pw,
-            options: { emailRedirectTo: location.origin + location.pathname, data: { full_name: name, account_type: 'market' } } });
+            options: { emailRedirectTo: back, data: { full_name: name, account_type: 'market' } } });
           if (error) throw error;
-          if (data.session) { dlg.close(); return; }
-          $('a-info').textContent = 'Account created. Open the confirmation email and click the link, then log in.';
-          $('a-info').classList.remove('hidden'); $('a-err').classList.add('hidden');
-        } else {
+          if (data.user && data.user.identities && data.user.identities.length === 0) throw new Error('User already registered');
+          if (data.session) { dlg.close(); flash('Welcome to the imMBA Market! Your account is ready.'); return; }
+          info(`Registration received. We sent a confirmation email to ${email}. Click the link inside, then log in.`);
+          $('a-resend').classList.remove('hidden');
+          btn.classList.add('hidden');   // done: avoid a second sign-up click
+        } else if (mode === 'login') {
           const { error } = await sb.auth.signInWithPassword({ email, password: pw });
           if (error) throw error;
-          dlg.close();
+          dlg.close(); flash('You are logged in.');
+        } else if (mode === 'forgot') {
+          const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: back });
+          if (error) throw error;
+          info('If this email has an account, a reset link is on its way. Check your inbox (and spam).');
+        } else if (mode === 'reset') {
+          const { error } = await sb.auth.updateUser({ password: pw });
+          if (error) throw error;
+          history.replaceState(null, '', location.pathname);
+          dlg.close(); flash('Your new password is saved. You are logged in.');
         }
-      } catch (ex) { err(friendly(ex)); }
+      } catch (ex) {
+        err(friendly(ex));
+        if (/Email not confirmed/i.test(ex.message || '')) $('a-resend').classList.remove('hidden');
+      } finally { btn.disabled = false; }
     });
   }
 
@@ -503,8 +609,8 @@
         <div><label class="${LABEL}" for="l-cat">Category</label><select id="l-cat" class="${FIELD}">${CATEGORIES.map(c => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
         <div><label class="${LABEL}" for="l-status">Listing status</label><select id="l-status" class="${FIELD}">
           <option value="listed" ${p.status === 'listed' ? 'selected' : ''}>Listed (visible)</option><option value="hidden" ${p.status === 'hidden' ? 'selected' : ''}>Hidden</option></select></div>
-        <div><label class="${LABEL}" for="l-price">Price (NT$) *</label><input id="l-price" type="number" min="0" class="${FIELD}" value="${esc(p.price)}"></div>
-        <div><label class="${LABEL}" for="l-qty">Quantity *</label><input id="l-qty" type="number" min="0" class="${FIELD}" value="${esc(p.quantity)}"></div>
+        <div><label class="${LABEL}" for="l-price">Price (NT$) *</label><input id="l-price" type="number" min="0" max="10000000" step="1" class="${FIELD}" value="${esc(p.price)}"></div>
+        <div><label class="${LABEL}" for="l-qty">Quantity *</label><input id="l-qty" type="number" min="0" max="100000" step="1" class="${FIELD}" value="${esc(p.quantity)}"></div>
         <div class="sm:col-span-2"><label class="${LABEL}" for="l-desc">Description</label><textarea id="l-desc" rows="3" maxlength="2000" class="${FIELD}">${esc(p.description)}</textarea></div>
         <div class="sm:col-span-2"><label class="${LABEL}" for="l-img">Product image (JPG, PNG or WebP, max 3 MB)</label>
           ${p.image_url ? `<img src="${esc(p.image_url)}" alt="" class="w-24 h-24 object-cover mb-2">` : ''}
@@ -518,8 +624,10 @@
       const row = { name: $('l-name').value.trim(), category: $('l-cat').value, status: $('l-status').value,
         price: Math.round(+$('l-price').value), quantity: Math.round(+$('l-qty').value), description: $('l-desc').value.trim(), image_url: p.image_url || '' };
       if (row.name.length < 2) return err('Give the product a name.');
-      if (!($('l-price').value !== '' && row.price >= 0)) return err('Enter a price of 0 or more.');
-      if (!($('l-qty').value !== '' && row.quantity >= 0)) return err('Enter a quantity of 0 or more.');
+      const pv = $('l-price').value, qv = $('l-qty').value;
+      if (pv === '' || !Number.isInteger(+pv) || +pv < 0 || +pv > 10000000) return err('Price must be a whole number from NT$0 to NT$10,000,000.');
+      if (qv === '' || !Number.isInteger(+qv) || +qv < 0 || +qv > 100000) return err('Quantity must be a whole number from 0 to 100,000.');
+      if (row.name.length > 120) return err('The product name can be 120 characters at most.');
       $('l-save').disabled = true;
       try {
         const file = $('l-img').files[0];
@@ -543,12 +651,14 @@
     if (!me()) return openAuth('login');
     const p = state.products.find(x => x.id === id);
     const cur = state.cart.find(c => c.product_id === id);
-    const next = Math.min((cur ? cur.qty : 0) + qty, p ? p.quantity : qty);
+    const next = (cur ? cur.qty : 0) + qty;
+    if (p && next > p.quantity) { flash(cur ? `Only ${p.quantity} available — you already have ${cur.qty} in your cart.` : `Only ${p.quantity} available.`, true); return false; }
     const { error } = cur
       ? await sb.from('market_cart').update({ qty: next }).eq('user_id', me()).eq('product_id', id)
       : await sb.from('market_cart').insert({ product_id: id, qty: next });
-    if (error) return flash(friendly(error), true);
-    flash(`Added to your cart: ${p ? p.name : 'item'}.`); await refresh();
+    if (error) { flash(friendly(error), true); return false; }
+    flash(`Added to your cart: ${p ? p.name : 'item'}. Open the cart to place your order.`); await refresh();
+    return true;
   }
   async function setQty(id, d) {
     const c = state.cart.find(x => x.product_id === id); if (!c) return;
@@ -558,10 +668,14 @@
     if (res.error) flash(friendly(res.error), true);
     await refresh();
   }
+  let placing = false;   // stops a double click from sending two orders
   async function checkout() {
-    const btn = $('btn-checkout'); btn.disabled = true;
+    if (placing) return;
+    placing = true;
+    const btn = $('btn-checkout'); btn.disabled = true; btn.textContent = 'Placing order…';
     const { data, error } = await sb.rpc('market_place_order', { p_shipping: state.shipping });
-    if (error) { btn.disabled = false; return flash(friendly(error), true); }
+    placing = false;
+    if (error) { btn.disabled = false; btn.textContent = 'Place order'; return flash(friendly(error), true); }
     const n = Array.isArray(data) ? data.length : 1;
     flash(`Order placed (${n} order${n > 1 ? 's' : ''}). The seller has been notified: follow the status under “My orders”.`);
     await refresh();
@@ -592,6 +706,7 @@
     if (t.id === 'f-clear') { $('filters').reset(); $('f-stock').checked = true; return renderProducts(); }
     if (t.dataset.edit) return openListingForm(state.myListings.find(p => p.id === t.dataset.edit));
     if (t.id === 'btn-notes') return openNotes();
+    if (t.id === 'btn-cart' || t.id === 'btn-cart-bar') return $('cart').scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (t.dataset.sold) {
       const p = state.myListings.find(x => x.id === t.dataset.sold);
       if (!confirm(`Mark “${p.name}” as sold? Its available stock becomes 0 (sold elsewhere, e.g. in person).`)) return;
@@ -627,7 +742,8 @@
     const f = e.target.closest('form[data-stock]'); if (!f) return;
     e.preventDefault();
     const qty = Math.round(+f.querySelector('input').value);
-    if (!(qty >= 0)) return flash('Stock must be 0 or more.', true);
+    const rawQ = f.querySelector('input').value;
+    if (rawQ === '' || !Number.isInteger(+rawQ) || qty < 0 || qty > 100000) return flash('Stock must be a whole number from 0 to 100,000.', true);
     const { error } = await sb.from('market_products').update({ quantity: qty }).eq('id', f.dataset.stock);
     if (error) return flash(friendly(error), true);
     flash('Stock updated.'); refresh();
@@ -645,9 +761,20 @@
     }
     await refresh();
   }
+  // Read before supabase-js cleans the address bar: did the person arrive from an email link?
+  const ARRIVED = location.hash + location.search;
+  const FROM_RECOVERY = /type=recovery/.test(ARRIVED), FROM_SIGNUP = /type=signup|type=email/.test(ARRIVED);
+  const LINK_ERROR = /error_description=([^&]+)/.exec(ARRIVED);
   sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') setTimeout(() => onAuth(session), 0);
+    if (event === 'PASSWORD_RECOVERY') { setTimeout(() => openAuth('reset'), 0); return; }
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') setTimeout(async () => {
+      await onAuth(session);
+      if (event === 'SIGNED_OUT') flash('You are logged out.');
+    }, 0);
   });
+  if (FROM_RECOVERY) setTimeout(() => openAuth('reset'), 300);
+  if (FROM_SIGNUP && !LINK_ERROR) setTimeout(() => flash('Your email is confirmed. Welcome to the imMBA Market!'), 600);
+  if (LINK_ERROR) setTimeout(() => flash('That email link is invalid or has expired. Request a new one from “Log in”.', true), 600);
   sb.auth.getSession().then(({ data }) => onAuth(data.session));
   // Check for new notifications every 30 s (e.g. "New order" for the seller) without redrawing the page.
   setInterval(async () => {
